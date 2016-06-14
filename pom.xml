@@ -2,9 +2,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
+  <groupId>org.gosu-lang</groupId>
   <artifactId>tora</artifactId>
   <name>tora</name>
-  <version>0.1-snapshot</version>
+  <version>0.1-SNAPSHOT</version>
 
   <parent>
     <groupId>org.sonatype.oss</groupId>
@@ -12,16 +13,20 @@
     <version>7</version>
   </parent>
 
+  <properties>
+    <gosu.version>1.13.5</gosu.version>  
+  </properties>
+  
   <dependencies>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core-api</artifactId>
-      <version>1.13</version>
+      <version>${gosu.version}</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core</artifactId>
-      <version>1.13.1</version>
+      <version>${gosu.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
