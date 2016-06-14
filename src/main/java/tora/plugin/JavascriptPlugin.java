@@ -37,7 +37,7 @@ public class JavascriptPlugin extends TypeLoaderBase
 
   private String toJavascriptFile( String s )
   {
-    return File.separator + s.replace( ".", File.separator ) + ".js";
+    return "/" + s.replace( ".", "/" ) + ".js";
   }
 
   @Override
