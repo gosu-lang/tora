@@ -5,11 +5,10 @@ import tora.parser.Tokenizer;
 
 public class FunctionBodyNode extends Node
 {
+
   public FunctionBodyNode( String name, Tokenizer.Token start, Tokenizer.Token end )
   {
     super( name, start, end );
-//    Tokenizer
-    //
   }
 
   @Override

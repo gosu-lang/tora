@@ -20,7 +20,7 @@ public class CodeGenTest
   public void testSimpleConstructorNode() { Assert.assertEquals("function Foo{}", new ConstructorNode("Foo",null, null ).genCode());}
 
   @Test
-  public void testSimpleFunctionNode() {Assert.assertEquals("function Foo(){ System.out.println(\"Foo\")}", new FunctionNode("Foo", null, null).genCode());}
+  public void testSimpleFunctionNode() {Assert.assertEquals("Foo = function(){System.out.println(\"Foo\")}", new FunctionNode("Foo", null, null).genCode());}
 
   @Test
   public void testSimplePropertyNode() {}
