@@ -13,6 +13,6 @@ public class ConstructorNode extends Node
   @Override
   public String genCode()
   {
-    return "function " + getName() + "{}";
+    return "function " + _name + "(){}";
   }
 }

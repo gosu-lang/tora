@@ -24,6 +24,6 @@ public class ClassNode extends Node
 
     return "var " + getName() + " = function() { "
             + membersCode
-            + "\n\treturn " + _name + "\n}();" ;
+            + "\n\treturn " + _name + ";\n}();" ;
   }
 }
