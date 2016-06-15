@@ -7,6 +7,7 @@ public class FunctionNode extends Node
 {
 
   FunctionBodyNode _bodyNode;
+  Boolean isStatic = false;
 
   public FunctionNode( String name, Tokenizer.Token start, Tokenizer.Token end )
   {
@@ -16,14 +17,16 @@ public class FunctionNode extends Node
     //FunctionBodyNode bodyNode = new (String name, startToken, endToken);
     addChild(_bodyNode);
 
-
-
-
   }
 
   @Override
   public String genCode()
   {
-    return "function " + this._name + "(){ " + this._bodyNode.genCode() + "}";
+    String response = "";
+    if(isStatic) {
+      response += "prototype.";
+    }
+    response += this._name + " = " + "function(){" + this._bodyNode.genCode() + "}";
+    return response;
   }
 }
