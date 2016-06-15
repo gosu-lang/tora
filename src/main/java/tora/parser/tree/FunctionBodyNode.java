@@ -8,11 +8,13 @@ public class FunctionBodyNode extends Node
   public FunctionBodyNode( String name, Tokenizer.Token start, Tokenizer.Token end )
   {
     super( name, start, end );
+//    Tokenizer
+    //
   }
 
   @Override
   public String genCode()
   {
-    return "TODO";
+    return this._name;
   }
 }
