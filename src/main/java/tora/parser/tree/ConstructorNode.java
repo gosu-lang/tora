@@ -13,6 +13,12 @@ public class ConstructorNode extends Node
   @Override
   public String genCode()
   {
-    return "function " + _name + "(){}";
+    String functionBodyCode;
+    try {
+      functionBodyCode = this.getChildren().get(0).genCode();
+    } catch (IndexOutOfBoundsException e) {
+      functionBodyCode = "(){}";
+    }
+    return   "function " + _name + functionBodyCode;
   }
 }

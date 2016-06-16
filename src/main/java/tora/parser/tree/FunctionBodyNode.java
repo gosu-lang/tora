@@ -14,6 +14,7 @@ public class FunctionBodyNode extends Node
   @Override
   public String genCode()
   {
+    //Does this need a name? Should it just be code?
     return this._name;
   }
 }

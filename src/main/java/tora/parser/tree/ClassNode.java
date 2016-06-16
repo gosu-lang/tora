@@ -13,17 +13,14 @@ public class ClassNode extends Node
   @Override
   public String genCode()
   {
-    String membersCode = "";
+    String childrenCode = "";
     for (Node node : this.getChildren()) {
-      if (node instanceof ConstructorNode) {
-
-      }
-      //Add class name to generated code for each child method, except for the constructor
-      membersCode += "\n\t" + (node instanceof ConstructorNode?"":(_name + ".")) + node.genCode();
+      childrenCode += "\n\t";
+      childrenCode += String.format(node.genCode(), _name); //Insert class name if children require it
     }
 
     return "var " + getName() + " = function() { "
-            + membersCode
-            + "\n\treturn " + _name + ";\n}();" ;
+            + childrenCode
+            + "\n\treturn " + getName() + ";\n}();" ;
   }
 }
