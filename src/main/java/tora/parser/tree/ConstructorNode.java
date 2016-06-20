@@ -5,10 +5,19 @@ import tora.parser.Tokenizer;
 
 public class ConstructorNode extends Node
 {
-  public ConstructorNode( String name, Tokenizer.Token start, Tokenizer.Token end )
+  private String _args = "";
+
+  public ConstructorNode(String name, Tokenizer.Token start, Tokenizer.Token end )
   {
     super( name, start, end );
   }
+
+  public ConstructorNode( String name, String args, Tokenizer.Token start, Tokenizer.Token end)
+  {
+    super( name, start, end );
+    _args = args;
+  }
+
 
   @Override
   public String genCode()
@@ -19,6 +28,8 @@ public class ConstructorNode extends Node
     } catch (IndexOutOfBoundsException e) {
       functionBodyCode = "{}";
     }
-    return   "function " + _name + "()" + functionBodyCode;
+    return   "function " + _name + "(" + _args + ")" +
+            functionBodyCode.replaceFirst("[{]", "{ _createClass(this," + _name +
+            ");" );
   }
 }

@@ -32,12 +32,16 @@ public class CodeGenTest
   @Test
   public void testSimpleClassNode()
   {
-    Assert.assertEquals("var Foo = function() { \n\treturn Foo;\n}();", new ClassNode("Foo", null, null).genCode());
+    Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
+            "var Foo = function() { \n" +
+            "\tfunction Foo(){ _createClass(this,Foo);}\n" +
+            "\treturn Foo;\n" +
+            "}();", new ClassNode("Foo", null, null).genCode());
   }
 
   @Test
   public void testSimpleConstructorNode() {
-    Assert.assertEquals("function Foo(){}",
+    Assert.assertEquals("function Foo(){ _createClass(this,Foo);}",
             new ConstructorNode("Foo",null, null ).genCode());}
 
   @Test
@@ -48,13 +52,13 @@ public class CodeGenTest
 
   @Test
   public void testSimpleFunctionNode() {
-    Assert.assertEquals("%s.prototype.Foo = function(){}",
-          new FunctionNode("Foo", null, null).genCode());
+    Assert.assertEquals("Bar.prototype.Foo = function(){}",
+          new FunctionNode("Foo", "Bar", false, null, null).genCode());
   }
 
   @Test
   public void testSimplePropertyNode() {
-    Assert.assertEquals("Object.defineProperty(%s.prototype, \"Foo\",{get:function(){}})",
+    Assert.assertEquals("get: function get(){}",
             new PropertyNode("Foo", null, null).genCode());
   }
 
@@ -65,8 +69,9 @@ public class CodeGenTest
     demoClass.addChild(demoConstructor);
     FunctionBodyNode doh = new FunctionBodyNode("{ this.foo = 42; }", null, null);
     demoConstructor.addChild(doh);
-    Assert.assertEquals("var DemoClass = function() { \n" +
-            "\tfunction DemoClass(){ this.foo = 42; }\n" +
+    Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
+            "var DemoClass = function() { \n" +
+            "\tfunction DemoClass(){ _createClass(this,DemoClass); this.foo = 42; }\n" +
             "\treturn DemoClass;\n" +
             "}();", demoClass.genCode());
   }
@@ -74,46 +79,55 @@ public class CodeGenTest
   @Test
   public void testFunctionConstruction() {
     ClassNode demoClass = new ClassNode("DemoClass", null, null);
-    FunctionNode bar = new FunctionNode("bar", null, null, false);
-    PropertyNode doh = new PropertyNode("doh", null, null, false);
+    FunctionNode bar = new FunctionNode("bar", "DemoClass", false, null, null);
+    PropertyNode doh = new PropertyNode("doh", false, null, null);
     demoClass.addChild(bar);
     demoClass.addChild(doh);
     bar.addChild(new FunctionBodyNode("{return this.foo;}", null, null));
     doh.addChild(new FunctionBodyNode("{return this.foo;}", null, null));
-    Assert.assertEquals("var DemoClass = function() { \n" +
+    Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
+            "var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n" +
+            "var DemoClass = function() { \n" +
+            "\tfunction DemoClass(){ _createClass(this,DemoClass);}\n" +
             "\tDemoClass.prototype.bar = function(){return this.foo;}\n" +
-            "\tObject.defineProperty(DemoClass.prototype, \"doh\",{get:function(){return this.foo;}})\n" +
+            "\t_createClass(DemoClass, [{\n" +
+            "\t\tkey: \"doh\",get: function get(){return this.foo;}}\n" +
+            "\t]);\n" +
             "\treturn DemoClass;\n" +
             "}();", demoClass.genCode());
 
   }
 
   public Node makeSampleTree() {
-    //Tree that should be generated from
+    //Tree that should be generated from Tora Conversion Example
     ClassNode demoClass = new ClassNode("DemoClass", null, null);
-    ConstructorNode demoConstructor = new ConstructorNode("DemoClass", null, null);
-    FunctionNode bar = new FunctionNode("bar", null, null, false);
-    PropertyNode doh = new PropertyNode("doh", null, null, false);
-    FunctionNode staticFoo = new FunctionNode("staticFoo", null, null, true);
+    ConstructorNode demoConstructor = new ConstructorNode("DemoClass", "DemoClass", null, null);
+    FunctionNode bar = new FunctionNode("bar", "DemoClass", false, null, null);
+    PropertyNode dohSet = new PropertyNode("doh", "d", true, null, null);
+    PropertyNode dohGet = new PropertyNode("doh", false, null, null);
+    FunctionNode staticFoo = new FunctionNode("staticFoo", "DemoClass", true, null, null);
     demoClass.addChild(demoConstructor);
     demoClass.addChild(bar);
-    demoClass.addChild(doh);
+    demoClass.addChild(dohSet);
+    demoClass.addChild(dohGet);
     demoClass.addChild(staticFoo);
     demoConstructor.addChild(new FunctionBodyNode("{this.foo = 42;}", null, null));
     bar.addChild(new FunctionBodyNode("{return this.foo;}", null, null));
-    doh.addChild(new FunctionBodyNode("{return this.foo;}", null, null));
+    dohGet.addChild(new FunctionBodyNode("{return this.foo;}", null, null));
+    dohSet.addChild(new FunctionBodyNode("{this.halfDoh = d/2;}", null, null));
     staticFoo.addChild(new FunctionBodyNode("{return 42;}",null,null));
     return demoClass;
   }
 
   @Test
   public void testClassNodeMembers() throws ScriptException, NoSuchMethodException {
-    //TODO: write a test that's not just printing it out
     engine.eval(makeSampleTree().genCode());
     Assert.assertEquals(42,engine.eval("DemoClass.staticFoo()"));
     engine.eval("var dem = new DemoClass()");
     Assert.assertEquals(42,engine.eval("dem.bar()"));
     Assert.assertEquals(42,engine.eval("dem.doh"));
+    engine.eval("dem.doh = 42");
+    engine.eval("dem.halfDoh = 21");
   }
 
 

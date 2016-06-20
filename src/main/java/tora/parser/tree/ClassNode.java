@@ -6,6 +6,7 @@ import tora.parser.Tokenizer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ClassNode extends Node {
     private static final String CREATE_CLASS = "var _createClass = function () { " +
@@ -15,11 +16,11 @@ public class ClassNode extends Node {
         "Object.defineProperty(target, descriptor.key, descriptor); } } " +
         "return function (Constructor, protoProps, staticProps) { if (protoProps) " +
         "defineProperties(Constructor.prototype, protoProps); if (staticProps) " +
-        "defineProperties(Constructor, staticProps); return Constructor; }; }();";
+        "defineProperties(Constructor, staticProps); return Constructor; }; }();\n";
 
     private static final String CLASS_CALL_CHECK = "function _classCallCheck(instance, Constructor) { " +
         "if (!(instance instanceof Constructor)) { " +
-        "throw new TypeError(\"Cannot call a class as a function\") } }";
+        "throw new TypeError(\"Cannot call a class as a function\") } }\n";
 
     private static final List<Class> CLASS_GEN_ORDER = Arrays.asList(ConstructorNode.class, FunctionNode.class,
         PropertyNode.class);
@@ -37,13 +38,22 @@ public class ClassNode extends Node {
         code += "var " + getName() + " = function() { ";
 
         if (getChildren(ConstructorNode.class).isEmpty()) {
-            code += new ConstructorNode(getName(),null,null).genCode(); //Gen default constructor if no child found
-        } else code += getChildren(ConstructorNode.class).get(0).genCode();
+            //Gen default constructor if no child found
+            code += "\n\t" + new ConstructorNode(getName(),null,null).genCode();
+        } else code += "\n\t" + getChildren(ConstructorNode.class).get(0).genCode();
 
         for (Node node : getChildren(FunctionNode.class)) {
             code += "\n\t" + node.genCode();
         }
 
+        code += genPropertyObjectCode(getChildren(PropertyNode.class));
+
+        code += "\n\treturn " + getName() + ";\n}();";
+
+        return code;
+    }
+
+    private String genPropertyObjectCode (List<PropertyNode> propertyNodes) {
         class PropertyNodeWrapper {
             private String _name;
             private PropertyNode _getter = null;
@@ -58,19 +68,19 @@ public class ClassNode extends Node {
             }
 
             public String genCode() {
-                return "{\n\t key: \"" + _name + "\"," +
+                return "{\n\t\tkey: \"" + _name + "\"," +
                         (_setter != null?_setter.genCode()+",":"") +
                         (_getter != null?_getter.genCode():"") +
                         "}";
             }
         }
 
+        String propCode = "";
         //combines getters and setters for each property
-        if (!getChildren(PropertyNode.class).isEmpty()) {
+        if (!propertyNodes.isEmpty()) {
             HashMap<String, PropertyNodeWrapper> propertyNodeBucket = new HashMap();
-
-            code += "_createClass(" + getName() + ", [";
-            for (PropertyNode node : getChildren(PropertyNode.class)) {
+            propCode += "\n\t_createClass(" + getName() + ", [";
+            for (PropertyNode node : propertyNodes) {
                 PropertyNodeWrapper wrapper = propertyNodeBucket.get(node.getName());
                 if (wrapper == null) {
                     wrapper = new PropertyNodeWrapper(node.getName());
@@ -79,15 +89,12 @@ public class ClassNode extends Node {
                 wrapper.add(node);
             }
 
-            for (String property : propertyNodeBucket.keySet()) {
-                code += propertyNodeBucket.get(property).genCode();
-            }
+            propCode += String.join(",", propertyNodeBucket.values().stream()
+                    .map(prop->prop.genCode())
+                    .collect(Collectors.toList()));
 
-            code += "]);";
+            propCode += "\n\t]);";
         }
-
-        code += "\n\t return " + getName() + ";\n}();";
-
-        return code;
+        return  propCode;
     }
 }

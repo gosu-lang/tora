@@ -5,6 +5,7 @@ import tora.parser.Tokenizer;
 public class PropertyNode extends Node
 {
 
+  private String _args = "";
   boolean _isSetter;
 
   public PropertyNode( String name, Tokenizer.Token start, Tokenizer.Token end )
@@ -13,9 +14,15 @@ public class PropertyNode extends Node
   }
 
   //Test Constructor
-  public PropertyNode(String name, Tokenizer.Token start, Tokenizer.Token end, boolean isSetter) {
+  public PropertyNode(String name, boolean isSetter, Tokenizer.Token start, Tokenizer.Token end) {
     super(name, start, end);
     _isSetter = isSetter;
+  }
+
+  public PropertyNode(String name, String args, boolean isSetter, Tokenizer.Token start, Tokenizer.Token end) {
+    super(name, start, end);
+    _isSetter = isSetter;
+    _args = args;
   }
 
   @Override
@@ -27,8 +34,8 @@ public class PropertyNode extends Node
     } catch (IndexOutOfBoundsException e) {
       functionBodyCode = "{}";
     }
-    return "Object.defineProperty(%s.prototype, \"" + _name + "\"," +
-            "{" + (_isSetter?"set":"get") +
-            ":function()" + functionBodyCode + "})"; //Should have one FunctionBodyNode child
+    return  (_isSetter?"set":"get") +
+            ": function " + (_isSetter?"set":"get") + "(" + _args + ")" +
+            functionBodyCode; //Should have one FunctionBodyNode child
   }
 }

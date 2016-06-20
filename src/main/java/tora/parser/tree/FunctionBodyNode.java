@@ -6,15 +6,17 @@ import tora.parser.Tokenizer;
 public class FunctionBodyNode extends Node
 {
 
-  public FunctionBodyNode( String name, Tokenizer.Token start, Tokenizer.Token end )
+  private String _content;
+  public FunctionBodyNode( String content, Tokenizer.Token start, Tokenizer.Token end )
   {
-    super( name, start, end );
+    super( null, start, end );
+    _content = content;
   }
 
   @Override
   public String genCode()
   {
     //Does this need a name? Should it just be code?
-    return this._name;
+    return _content;
   }
 }

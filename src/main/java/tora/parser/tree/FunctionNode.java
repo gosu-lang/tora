@@ -6,6 +6,8 @@ import tora.parser.Tokenizer;
 public class FunctionNode extends Node
 {
 
+  private String _args = "";
+  String _className;
   Boolean _isStatic = false;
 
   public FunctionNode( String name, Tokenizer.Token start, Tokenizer.Token end )
@@ -16,10 +18,21 @@ public class FunctionNode extends Node
   }
 
   //Test constructor
-  public FunctionNode( String name, Tokenizer.Token start, Tokenizer.Token end, boolean isStatic )
+  public FunctionNode( String name, String className, boolean isStatic, Tokenizer.Token start, Tokenizer.Token end)
   {
     super( name, start, end );
+    _className = className;
     _isStatic = isStatic;
+  }
+
+  //Test constructor
+  public FunctionNode( String name, String className, String args, boolean isStatic, Tokenizer.Token start, Tokenizer
+          .Token end)
+  {
+    super( name, start, end );
+    _className = className;
+    _isStatic = isStatic;
+    _args = args;
   }
 
 
@@ -33,7 +46,7 @@ public class FunctionNode extends Node
     } catch (IndexOutOfBoundsException e) {
       functionBodyCode = "{}";
     }
-    return  "%s." + (_isStatic?"":"prototype.") + //If static, can be method of class directly
-            getName() + " = " + "function()" + functionBodyCode;
+    return  _className + (_isStatic?".":".prototype.") + //If static, can be method of class directly
+            getName() + " = " + "function" + "(" + _args + ")" + functionBodyCode;
   }
 }
