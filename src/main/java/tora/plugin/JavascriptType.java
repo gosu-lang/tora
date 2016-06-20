@@ -26,7 +26,7 @@ public class JavascriptType extends TypeBase implements IType
   private final String _src;
   private ITypeInfo _typeinfo;
 
-  public JavascriptType( JavascriptPlugin typeloader, String name, InputStream jsFile )
+  public JavascriptType( JavascriptPlugin typeloader, String name, IFile jsFile )
   {
     _name = name;
     _typeloader = typeloader;
@@ -42,7 +42,7 @@ public class JavascriptType extends TypeBase implements IType
     }
     try
     {
-      _src = StreamUtil.getContent( new InputStreamReader( jsFile ) );
+      _src = StreamUtil.getContent( new InputStreamReader( jsFile.openInputStream() ) );
     }
     catch( IOException e )
     {
