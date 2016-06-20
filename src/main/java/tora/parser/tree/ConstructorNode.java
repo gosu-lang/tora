@@ -17,8 +17,8 @@ public class ConstructorNode extends Node
     try {
       functionBodyCode = this.getChildren().get(0).genCode();
     } catch (IndexOutOfBoundsException e) {
-      functionBodyCode = "(){}";
+      functionBodyCode = "{}";
     }
-    return   "function " + _name + functionBodyCode;
+    return   "function " + _name + "()" + functionBodyCode;
   }
 }

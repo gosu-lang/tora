@@ -31,9 +31,9 @@ public class FunctionNode extends Node
     try {
       functionBodyCode = this.getChildren().get(0).genCode();
     } catch (IndexOutOfBoundsException e) {
-      functionBodyCode = "(){}";
+      functionBodyCode = "{}";
     }
     return  "%s." + (_isStatic?"":"prototype.") + //If static, can be method of class directly
-            getName() + " = " + "function" + functionBodyCode;
+            getName() + " = " + "function()" + functionBodyCode;
   }
 }
