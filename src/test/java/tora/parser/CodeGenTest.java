@@ -7,6 +7,7 @@ import gw.lang.parser.*;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.TypeSystem;
 import gw.util.GosuExceptionUtil;
+import gw.util.SystemOutLogger;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -40,6 +41,12 @@ public class CodeGenTest
             new ConstructorNode("Foo",null, null ).genCode());}
 
   @Test
+  public void testSimpleFunctionBodyNode() {
+    Assert.assertEquals("var foo = 15;",
+            new FunctionBodyNode("var foo = 15;", null, null).genCode());
+  }
+
+  @Test
   public void testSimpleFunctionNode() {
     Assert.assertEquals("%s.prototype.Foo = function(){}",
           new FunctionNode("Foo", null, null).genCode());
@@ -51,6 +58,35 @@ public class CodeGenTest
             new PropertyNode("Foo", null, null).genCode());
   }
 
+  @Test
+  public void testClassConstruction() {
+    ClassNode demoClass = new ClassNode("DemoClass", null, null);
+    ConstructorNode demoConstructor = new ConstructorNode("DemoClass", null, null);
+    demoClass.addChild(demoConstructor);
+    FunctionBodyNode doh = new FunctionBodyNode("{ this.foo = 42; }", null, null);
+    demoConstructor.addChild(doh);
+    Assert.assertEquals("var DemoClass = function() { \n" +
+            "\tfunction DemoClass(){ this.foo = 42; }\n" +
+            "\treturn DemoClass;\n" +
+            "}();", demoClass.genCode());
+  }
+
+  @Test
+  public void testFunctionConstruction() {
+    ClassNode demoClass = new ClassNode("DemoClass", null, null);
+    FunctionNode bar = new FunctionNode("bar", null, null, false);
+    PropertyNode doh = new PropertyNode("doh", null, null, false);
+    demoClass.addChild(bar);
+    demoClass.addChild(doh);
+    bar.addChild(new FunctionBodyNode("{return this.foo;}", null, null));
+    doh.addChild(new FunctionBodyNode("{return this.foo;}", null, null));
+    Assert.assertEquals("var DemoClass = function() { \n" +
+            "\tDemoClass.prototype.bar = function(){return this.foo;}\n" +
+            "\tObject.defineProperty(DemoClass.prototype, \"doh\",{get:function(){return this.foo;}})\n" +
+            "\treturn DemoClass;\n" +
+            "}();", demoClass.genCode());
+
+  }
 
   public Node makeSampleTree() {
     //Tree that should be generated from
@@ -63,10 +99,10 @@ public class CodeGenTest
     demoClass.addChild(bar);
     demoClass.addChild(doh);
     demoClass.addChild(staticFoo);
-    demoConstructor.addChild(new FunctionBodyNode("(){this.foo = 42;}", null, null));
-    bar.addChild(new FunctionBodyNode("(){return this.foo;}", null, null));
-    doh.addChild(new FunctionBodyNode("(){return this.foo;}", null, null));
-    staticFoo.addChild(new FunctionBodyNode("(){return 42;}",null,null));
+    demoConstructor.addChild(new FunctionBodyNode("{this.foo = 42;}", null, null));
+    bar.addChild(new FunctionBodyNode("{return this.foo;}", null, null));
+    doh.addChild(new FunctionBodyNode("{return this.foo;}", null, null));
+    staticFoo.addChild(new FunctionBodyNode("{return 42;}",null,null));
     return demoClass;
   }
 

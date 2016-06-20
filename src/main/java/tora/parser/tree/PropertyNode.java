@@ -25,10 +25,10 @@ public class PropertyNode extends Node
     try {
       functionBodyCode = this.getChildren().get(0).genCode();
     } catch (IndexOutOfBoundsException e) {
-      functionBodyCode = "(){}";
+      functionBodyCode = "{}";
     }
     return "Object.defineProperty(%s.prototype, \"" + _name + "\"," +
             "{" + (_isSetter?"set":"get") +
-            ":function" + functionBodyCode + "})"; //Should have one FunctionBodyNode child
+            ":function()" + functionBodyCode + "})"; //Should have one FunctionBodyNode child
   }
 }
