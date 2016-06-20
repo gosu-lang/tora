@@ -13,8 +13,6 @@ public class FunctionNode extends Node
   public FunctionNode( String name, Tokenizer.Token start, Tokenizer.Token end )
   {
     super( name, start, end );
-//    Find body start and end tokens
-    //FunctionBodyNode bodyNode = new (String name, startToken, endToken);
   }
 
   //Test constructor

@@ -29,7 +29,7 @@ public class ConstructorNode extends Node
       functionBodyCode = "{}";
     }
     return   "function " + _name + "(" + _args + ")" +
-            functionBodyCode.replaceFirst("[{]", "{ _createClass(this," + _name +
+            functionBodyCode.replaceFirst("[{]", "{ _classCallCheck(this," + _name +
             ");" );
   }
 }

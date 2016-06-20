@@ -6,7 +6,7 @@ public class PropertyNode extends Node
 {
 
   private String _args = "";
-  boolean _isSetter;
+  private boolean _isSetter;
 
   public PropertyNode( String name, Tokenizer.Token start, Tokenizer.Token end )
   {
@@ -37,5 +37,9 @@ public class PropertyNode extends Node
     return  (_isSetter?"set":"get") +
             ": function " + (_isSetter?"set":"get") + "(" + _args + ")" +
             functionBodyCode; //Should have one FunctionBodyNode child
+  }
+
+  public boolean isSetter() {
+    return _isSetter;
   }
 }

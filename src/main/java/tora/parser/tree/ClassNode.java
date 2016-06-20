@@ -54,6 +54,7 @@ public class ClassNode extends Node {
     }
 
     private String genPropertyObjectCode (List<PropertyNode> propertyNodes) {
+        //Wrapper to hold getters and setters for the same property
         class PropertyNodeWrapper {
             private String _name;
             private PropertyNode _getter = null;
@@ -63,7 +64,7 @@ public class ClassNode extends Node {
                 _name = name;
             }
             public void add(PropertyNode node) {
-                if (node._isSetter) _setter = node;
+                if (node.isSetter()) _setter = node;
                 else _getter = node;
             }
 

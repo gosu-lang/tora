@@ -34,14 +34,14 @@ public class CodeGenTest
   {
     Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
             "var Foo = function() { \n" +
-            "\tfunction Foo(){ _createClass(this,Foo);}\n" +
+            "\tfunction Foo(){ _classCallCheck(this,Foo);}\n" +
             "\treturn Foo;\n" +
             "}();", new ClassNode("Foo", null, null).genCode());
   }
 
   @Test
   public void testSimpleConstructorNode() {
-    Assert.assertEquals("function Foo(){ _createClass(this,Foo);}",
+    Assert.assertEquals("function Foo(){ _classCallCheck(this,Foo);}",
             new ConstructorNode("Foo",null, null ).genCode());}
 
   @Test
@@ -71,7 +71,7 @@ public class CodeGenTest
     demoConstructor.addChild(doh);
     Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
             "var DemoClass = function() { \n" +
-            "\tfunction DemoClass(){ _createClass(this,DemoClass); this.foo = 42; }\n" +
+            "\tfunction DemoClass(){ _classCallCheck(this,DemoClass); this.foo = 42; }\n" +
             "\treturn DemoClass;\n" +
             "}();", demoClass.genCode());
   }
@@ -88,7 +88,7 @@ public class CodeGenTest
     Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
             "var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n" +
             "var DemoClass = function() { \n" +
-            "\tfunction DemoClass(){ _createClass(this,DemoClass);}\n" +
+            "\tfunction DemoClass(){ _classCallCheck(this,DemoClass);}\n" +
             "\tDemoClass.prototype.bar = function(){return this.foo;}\n" +
             "\t_createClass(DemoClass, [{\n" +
             "\t\tkey: \"doh\",get: function get(){return this.foo;}}\n" +
@@ -101,7 +101,7 @@ public class CodeGenTest
   public Node makeSampleTree() {
     //Tree that should be generated from Tora Conversion Example
     ClassNode demoClass = new ClassNode("DemoClass", null, null);
-    ConstructorNode demoConstructor = new ConstructorNode("DemoClass", "DemoClass", null, null);
+    ConstructorNode demoConstructor = new ConstructorNode("DemoClass", null, null);
     FunctionNode bar = new FunctionNode("bar", "DemoClass", false, null, null);
     PropertyNode dohSet = new PropertyNode("doh", "d", true, null, null);
     PropertyNode dohGet = new PropertyNode("doh", false, null, null);
@@ -121,13 +121,14 @@ public class CodeGenTest
 
   @Test
   public void testClassNodeMembers() throws ScriptException, NoSuchMethodException {
+    System.out.println(makeSampleTree().genCode());
     engine.eval(makeSampleTree().genCode());
     Assert.assertEquals(42,engine.eval("DemoClass.staticFoo()"));
     engine.eval("var dem = new DemoClass()");
     Assert.assertEquals(42,engine.eval("dem.bar()"));
     Assert.assertEquals(42,engine.eval("dem.doh"));
     engine.eval("dem.doh = 42");
-    engine.eval("dem.halfDoh = 21");
+    Assert.assertEquals(21.0,engine.eval("dem.halfDoh"));
   }
 
 
