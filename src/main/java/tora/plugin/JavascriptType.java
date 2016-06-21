@@ -25,15 +25,17 @@ public class JavascriptType extends TypeBase implements IType
   private final String _package;
   private final String _src;
   private ITypeInfo _typeinfo;
+  private IFile _file;
 
   public JavascriptType( JavascriptPlugin typeloader, String name, IFile jsFile )
   {
     _name = name;
     _typeloader = typeloader;
+    _file = jsFile;
     if( _name.indexOf( '.' ) > 0 )
     {
-      _relativeName = _name.substring( _name.lastIndexOf( '.' ) );
-      _package = _name.substring( 0, _name.lastIndexOf( '.' ) - 1);
+      _relativeName = _name.substring( _name.lastIndexOf( '.' ) + 1 );
+      _package = _name.substring( 0, _name.lastIndexOf( '.' ) );
     }
     else
     {
@@ -100,7 +102,6 @@ public class JavascriptType extends TypeBase implements IType
   @Override
   public IFile[] getSourceFiles()
   {
-    //TODO cgross - implmement?
-    return new IFile[0];
+    return new IFile[] {_file};
   }
 }
