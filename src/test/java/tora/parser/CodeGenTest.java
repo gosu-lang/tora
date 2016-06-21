@@ -24,6 +24,7 @@ import java.util.HashMap;
 public class CodeGenTest
 {
   private static ScriptEngine engine;
+
   @BeforeClass
   public static void beforeClass() {
     engine = new ScriptEngineManager().getEngineByName("nashorn");
@@ -90,8 +91,8 @@ public class CodeGenTest
             "var DemoClass = function() { \n" +
             "\tfunction DemoClass(){ _classCallCheck(this,DemoClass);}\n" +
             "\tDemoClass.prototype.bar = function(){return this.foo;}\n" +
-            "\t_createClass(DemoClass, [{\n" +
-            "\t\tkey: \"doh\",get: function get(){return this.foo;}}\n" +
+            "\t_createClass(DemoClass, [\n" +
+            "\t\t{key: \"doh\",get: function get(){return this.foo;}}\n" +
             "\t]);\n" +
             "\treturn DemoClass;\n" +
             "}();", demoClass.genCode());
@@ -99,22 +100,65 @@ public class CodeGenTest
   }
 
   public Node makeSampleTree() {
-    //Tree that should be generated from Tora Conversion Example
+    //Tree based on Tora Conversion Example
+
+//    class DemoClass {
+//
+//      // constructor definition
+//      constructor() {
+//        this.foo = 42;
+//      }
+//
+//      // function definition
+//      bar() {
+//        return this.foo;
+//      }
+//
+//
+//      set doh(d) {
+//        this.halfDoh = d/2;
+//      }
+//
+//      // property definition
+//      get doh() {
+//        return this.foo;
+//      }
+//
+//      set poh(d) {
+//        this.doublePoh = d * 2;
+//      }
+//
+//      get poh() {
+//        return this.doh;
+//      }
+//
+//
+//      // static function definition
+//      static staticFoo() {
+//        return 42;
+//      }
+//    }
     ClassNode demoClass = new ClassNode("DemoClass", null, null);
     ConstructorNode demoConstructor = new ConstructorNode("DemoClass", null, null);
     FunctionNode bar = new FunctionNode("bar", "DemoClass", false, null, null);
     PropertyNode dohSet = new PropertyNode("doh", "d", true, null, null);
     PropertyNode dohGet = new PropertyNode("doh", false, null, null);
+    PropertyNode pohSet = new PropertyNode("poh", "p", true, null, null);
+    PropertyNode pohGet = new PropertyNode("poh", false, null, null);
     FunctionNode staticFoo = new FunctionNode("staticFoo", "DemoClass", true, null, null);
     demoClass.addChild(demoConstructor);
     demoClass.addChild(bar);
     demoClass.addChild(dohSet);
     demoClass.addChild(dohGet);
+    demoClass.addChild(pohSet);
+    demoClass.addChild(pohGet);
     demoClass.addChild(staticFoo);
     demoConstructor.addChild(new FunctionBodyNode("{this.foo = 42;}", null, null));
     bar.addChild(new FunctionBodyNode("{return this.foo;}", null, null));
     dohGet.addChild(new FunctionBodyNode("{return this.foo;}", null, null));
     dohSet.addChild(new FunctionBodyNode("{this.halfDoh = d/2;}", null, null));
+    pohGet.addChild(new FunctionBodyNode("{return this.doh;}", null, null));
+    pohSet.addChild(new FunctionBodyNode("{this.doublePoh = p*2;}", null, null));
     staticFoo.addChild(new FunctionBodyNode("{return 42;}",null,null));
     return demoClass;
   }
@@ -129,6 +173,9 @@ public class CodeGenTest
     Assert.assertEquals(42,engine.eval("dem.doh"));
     engine.eval("dem.doh = 42");
     Assert.assertEquals(21.0,engine.eval("dem.halfDoh"));
+    Assert.assertEquals(42,engine.eval("dem.poh"));
+    engine.eval("dem.poh = 42");
+    Assert.assertEquals(84l,engine.eval("dem.doublePoh"));
   }
 
 

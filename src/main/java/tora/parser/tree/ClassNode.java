@@ -69,7 +69,7 @@ public class ClassNode extends Node {
             }
 
             public String genCode() {
-                return "{\n\t\tkey: \"" + _name + "\"," +
+                return "\n\t\t" + "{key: \"" + _name + "\"," +
                         (_setter != null?_setter.genCode()+",":"") +
                         (_getter != null?_getter.genCode():"") +
                         "}";
