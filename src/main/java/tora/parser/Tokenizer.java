@@ -67,17 +67,17 @@ public class Tokenizer
 
   public Token next() {
     consumeWhitespace();
-    Token ret = null;
+    Token ret;
 
     if (_ch == '\'' || _ch == '"') {
       ret = consumeString();
-    } else if (String.valueOf(_ch).matches("[a-zA-Z$_]")) {
+    } else if (TokenType.startsIdentifier(_ch)) {
       ret = consumeWord();
     } else if (_ch == '.') {
       //For numbers that start with the decimal point
-      if (String.valueOf(peek()).matches("[0-9]")) ret = consumeNumber();
+      if (TokenType.isDigit(peek())) ret = consumeNumber();
       else ret = consumePunctuation();
-    } else if (String.valueOf(_ch).matches("[0-9]")) {
+    } else if (TokenType.isDigit(_ch)) {
       ret = consumeNumber();
     } else if (TokenType.isPunctuation(_ch)) {
       ret = consumePunctuation();
@@ -98,7 +98,7 @@ public class Tokenizer
     } else  {
       ret = newToken(TokenType.ERROR, "unknown char");
     }
-    return ret; //Make this into an error later?
+    return ret;
   }
 
 
@@ -109,17 +109,17 @@ public class Tokenizer
   private Token consumeNumber() {
     boolean isDec = true, isBin = false, isHex = false, isOctal = false, isImpliedOctal = false;
     boolean hasDecPoint = false;
-    String val = "";
+    StringBuilder val = new StringBuilder();
     if (_ch == '0') {
       isDec = false;
       //Mark if explicitly hex, octal, or binary
       if( "oOxXbB".indexOf(peek()) >= 0) {
-        val += _ch;
+        val.append(_ch);
         nextChar();
         if (_ch == 'b' || _ch == 'B') isBin = true;
         else if (_ch == 'x' || _ch == 'X') isHex = true;
         else if (_ch == 'o' || _ch == 'O') isOctal = true;
-        val += _ch;
+        val.append(_ch);
         nextChar();
       } else {
         //Octal is implied if number starts with 0, but can still be dec if a 8 or 9 follows
@@ -127,12 +127,12 @@ public class Tokenizer
       }
     }
     while ( !(isDec && hasDecPoint && _ch == '.') && //Limit one decimal point to floating point num
-            (isDec && String.valueOf(_ch).matches("[0-9.]")) || //Only dec can have decimal points
-            (isHex && String.valueOf(_ch).matches("[0-9a-fA-F]")) ||
-            ((isOctal || isImpliedOctal) && String.valueOf(_ch).matches("[0-7]")) ||
-            (isBin && String.valueOf(_ch).matches("[01]"))) {
+            (isDec && (TokenType.isDigit(_ch) || _ch == '.') || //Only dec can have decimal points
+            (isHex && TokenType.isHexCh(_ch)) ||
+            ((isOctal || isImpliedOctal) && TokenType.isOctal(_ch))) ||
+            (isBin && TokenType.isBinary(_ch))) {
       if (_ch == '.') hasDecPoint = true;
-      val += _ch;
+      val.append(_ch);
       nextChar();
       if (isDec && (_ch == 'e' || _ch == 'E')) return consumeExponent(val);
       //changes octal to dec, so 0777 will be octal and 0778 will be dec
@@ -145,24 +145,24 @@ public class Tokenizer
     if ((isHex || isBin || isOctal) && val.length() <= 2) {
       return newToken(TokenType.ERROR, "illegal number token");
     }
-    return newToken (TokenType.NUMBER, val);
+    return newToken (TokenType.NUMBER, val.toString());
   }
 
   /* Helper for consume number; Consumes the exponent segment of a number, which will start with e (or E),
    * is optionally followed by a sign, and then contains only integers
    */
-  private Token consumeExponent(String val) {
-    val += _ch;
+  private Token consumeExponent(StringBuilder val) {
+    val.append(_ch);
     nextChar();
     //Consume optional + or -
     if (_ch == '+' || _ch == '-') {
-      val += _ch;
+      val.append(_ch);
       nextChar();
     }
-    for (; String.valueOf(_ch).matches("[0-9]"); nextChar()) {
-      val += _ch;
+    for (; TokenType.isDigit(_ch); nextChar()) {
+      val.append(_ch);
     }
-    return newToken (TokenType.NUMBER, val);
+    return newToken (TokenType.NUMBER, val.toString());
   }
 
 
@@ -171,30 +171,32 @@ public class Tokenizer
    * Rules for identifier names from emca-262 11.6.1
    */
   private Token consumeWord() {
-    String val = "";
-    for (; String.valueOf(_ch).matches("[0-9a-zA-Z$_]"); nextChar()) {
-      val += _ch;
+    StringBuilder val = new StringBuilder();
+    for (; TokenType.partOfIdentifier(_ch); nextChar()) {
+      val.append(_ch);
     }
-    if (TokenType.isKeyword(val)) return newToken(TokenType.KEYWORD, val);
-    else if (TokenType.isNull(val)) return newToken(TokenType.NULL, val);
-    else if (TokenType.isBoolean(val)) return newToken(TokenType.BOOLEAN, val);
-    else if (TokenType.isClass(val)) return newToken(TokenType.CLASS, val);
-    else return newToken(TokenType.IDENTIFIER, val);
+    String strVal = val.toString();
+    if (TokenType.isKeyword(strVal)) return newToken(TokenType.KEYWORD, strVal);
+    else if (TokenType.isNull(strVal)) return newToken(TokenType.NULL, strVal);
+    else if (TokenType.isBoolean(strVal)) return newToken(TokenType.BOOLEAN, strVal);
+    else if (TokenType.isClass(strVal)) return newToken(TokenType.CLASS, strVal);
+    else return newToken(TokenType.IDENTIFIER, strVal);
   }
 
+  /* Strings can use ' or " in javascript */
   private Token consumeString() {
     char enterQuote = _ch; //Can be either ' or "
-    String val = String.valueOf(enterQuote);
+    StringBuilder val = new StringBuilder(String.valueOf(_ch));
     nextChar();
     //Consume string until we find a non-escaped quote matching the enter quote
     for (;!(_ch == enterQuote && val.charAt(val.length()-1) != '\\'); nextChar()) {
-      val += _ch;
+      val.append(_ch);
       //error if EOF comes before terminating quote
       if (reachedEOF()) return newToken(TokenType.ERROR, "unterminated string");
     }
-    val += _ch; //add closing quote;
+    val.append(_ch); //add closing quote;
     nextChar();
-    return newToken(TokenType.STRING, val);
+    return newToken(TokenType.STRING, val.toString());
   }
 
   /*Consumes punctuation, which are all single characters*/
@@ -205,38 +207,38 @@ public class Tokenizer
   }
 
   private Token consumeOperator() {
-    String val = "";
+    StringBuilder val = new StringBuilder();
     /*Keep consuming until we reach a non operator character or when adding the character makes a
      non-valid operator, since every multi-character operator is built off a shorter operator
       */
-    for (; TokenType.isPartOfOperator(_ch) && TokenType.isOperator(val + _ch); nextChar()) {
-      val += _ch;
+    for (; TokenType.isPartOfOperator(_ch) && TokenType.isOperator(val.toString() + _ch); nextChar()) {
+      val.append(_ch);
     }
-    return newToken(TokenType.OPERATOR, val);
+    return newToken(TokenType.OPERATOR, val.toString());
   }
 
   private Token consumeMultilineComment() {
-    String val = "/*";
+    StringBuilder val = new StringBuilder("/*");
     nextChar();
     nextChar(); //Consume first two chars, which we know make '/*'
     for (;!(_ch == '/' && val.charAt(val.length()-1) == '*'); nextChar()) {
-      val += _ch;
+      val.append(_ch);
       //error if EOF comes before terminating quote
       if (reachedEOF()) return newToken(TokenType.ERROR, "unterminated multiline comment");
     }
-    val += _ch;
+    val.append(_ch);
     nextChar();
-    return newToken(TokenType.COMMENT, val);
+    return newToken(TokenType.COMMENT, val.toString());
   }
 
   private Token consumeSingleLineComment() {
-    String val = "//";
+    StringBuilder val = new StringBuilder("//");
     nextChar();
     nextChar(); //Consume first two chars, which we know make '//'
     for (; !(_ch == '\n' || _ch == '\r' || reachedEOF()); nextChar()) {
-      val += _ch;
+      val.append(_ch);
     }
-    return newToken(TokenType.COMMENT, val);
+    return newToken(TokenType.COMMENT, val.toString());
   }
 
   //========================================================================================

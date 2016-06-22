@@ -33,29 +33,29 @@ public class TokenizerTest
   @Test
   public void simpleKeywordTest()
   {
-    List<Tokenizer.Token> keyword = tokenize(" for");
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.KEYWORD, "for")), keyword);
+    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.KEYWORD, "for")),
+            tokenize("for"));
   }
 
   @Test
   public void simpleIdentifierTest()
   {
-    List<Tokenizer.Token> keyword = tokenize(" carson");
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.IDENTIFIER, "carson")), keyword);
+    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.IDENTIFIER, "carson")),
+            tokenize("carson"));
   }
 
   @Test
   public void simpleNullTest()
   {
-    List<Tokenizer.Token> keyword = tokenize("null");
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NULL, "null")), keyword);
+    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NULL, "null")),
+            tokenize("null"));
   }
 
   @Test
   public void simpleBooleanTest()
   {
-    List<Tokenizer.Token> keyword = tokenize("true");
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.BOOLEAN, "true")), keyword);
+    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.BOOLEAN, "true")),
+            tokenize("true"));
   }
 
   @Test
@@ -157,6 +157,9 @@ public class TokenizerTest
     Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "5e5"),
             new Tokenizer.Token(TokenType.NUMBER, ".5")),
             tokenize("5e5.5"));
+    //Marked as binary, with no value following
+    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.ERROR, "illegal number token")),
+            tokenize("0b"));
   }
 
   @Test

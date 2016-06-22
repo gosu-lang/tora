@@ -45,6 +45,15 @@ public enum TokenType {
             "?", ":"}; //Ternary operators
     private static final Set<String> OPERATORS_SET = new HashSet<String>(Arrays.asList(OPERATORS));
 
+    //Rules for identifier names from emca-262 section 11.6.1
+    public static boolean startsIdentifier(char ch) {
+        return String.valueOf(ch).matches("[a-zA-Z$_]");
+    }
+
+    public static boolean partOfIdentifier(char ch) {
+        return String.valueOf(ch).matches("[0-9a-zA-Z$_]");
+    }
+
     public static boolean isKeyword(String word) {
         return KEYWORDS_SET.contains(word);
     }
@@ -72,5 +81,22 @@ public enum TokenType {
     public static boolean isOperator(String word) {
         return OPERATORS_SET.contains(word);
     }
+
+    public static boolean isHexCh(char ch) {
+        return String.valueOf(ch).matches("[0-9a-fA-F]");
+    }
+
+    public static boolean isDigit(char ch) {
+        return String.valueOf(ch).matches("[0-9]");
+    }
+
+    public static boolean isBinary(char ch) {
+        return ch == '0' || ch == '1';
+    }
+
+    public static boolean isOctal(char ch) {
+        return String.valueOf(ch).matches("[0-7]");
+    }
+
 
 }
