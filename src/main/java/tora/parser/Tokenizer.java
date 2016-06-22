@@ -102,25 +102,65 @@ public class Tokenizer
   }
 
 
-  //TODO: add decimals and hex and all that
+  /*Possible numbers are integers (decimal, hex, octal or binary)
+    and floating point numbers (can have decimal point and exponent);
+    Rules taken from mozilla docs Grammar and Types
+    */
   private Token consumeNumber() {
-    boolean isBin = false, isHex = false, hasDecPoint = false;
+    boolean isDec = true, isBin = false, isHex = false, isOctal = false, isImpliedOctal = false;
+    boolean hasDecPoint = false;
     String val = "";
-    if (_ch == '0' && "xXbB".indexOf(peek()) >= 0) {
-      val += _ch;
-      nextChar();
-      if (_ch == 'b' || _ch == 'B') isBin = true;
-      else if (_ch == 'x' || _ch == 'X') isHex = true;
-      val += _ch;
-      nextChar();
+    if (_ch == '0') {
+      isDec = false;
+      //Mark if explicitly hex, octal, or binary
+      if( "oOxXbB".indexOf(peek()) >= 0) {
+        val += _ch;
+        nextChar();
+        if (_ch == 'b' || _ch == 'B') isBin = true;
+        else if (_ch == 'x' || _ch == 'X') isHex = true;
+        else if (_ch == 'o' || _ch == 'O') isOctal = true;
+        val += _ch;
+        nextChar();
+      } else {
+        //Octal is implied if number starts with 0, but can still be dec if a 8 or 9 follows
+        isImpliedOctal = true;
+      }
     }
-    while ( (!hasDecPoint || _ch != '.') && //One decimal point max for numbers
-            (!isHex && !isBin && String.valueOf(_ch).matches("[0-9.]")) ||
-            (isHex && String.valueOf(_ch).matches("[0-9a-fA-F.]")) ||
-            (isBin && String.valueOf(_ch).matches("[01.]"))) {
+    while ( !(isDec && hasDecPoint && _ch == '.') && //Limit one decimal point to floating point num
+            (isDec && String.valueOf(_ch).matches("[0-9.]")) || //Only dec can have decimal points
+            (isHex && String.valueOf(_ch).matches("[0-9a-fA-F]")) ||
+            ((isOctal || isImpliedOctal) && String.valueOf(_ch).matches("[0-7]")) ||
+            (isBin && String.valueOf(_ch).matches("[01]"))) {
       if (_ch == '.') hasDecPoint = true;
       val += _ch;
       nextChar();
+      if (isDec && (_ch == 'e' || _ch == 'E')) return consumeExponent(val);
+      //changes octal to dec, so 0777 will be octal and 0778 will be dec
+      if (isImpliedOctal && (_ch == '8' || _ch == '9')) {
+        isDec = true;
+        isImpliedOctal = false;
+      }
+    }
+    //If explicitly starts with 0x, 0o, or 0b; throw an error if nothing after
+    if ((isHex || isBin || isOctal) && val.length() <= 2) {
+      return newToken(TokenType.ERROR, "illegal number token");
+    }
+    return newToken (TokenType.NUMBER, val);
+  }
+
+  /* Helper for consume number; Consumes the exponent segment of a number, which will start with e (or E),
+   * is optionally followed by a sign, and then contains only integers
+   */
+  private Token consumeExponent(String val) {
+    val += _ch;
+    nextChar();
+    //Consume optional + or -
+    if (_ch == '+' || _ch == '-') {
+      val += _ch;
+      nextChar();
+    }
+    for (; String.valueOf(_ch).matches("[0-9]"); nextChar()) {
+      val += _ch;
     }
     return newToken (TokenType.NUMBER, val);
   }

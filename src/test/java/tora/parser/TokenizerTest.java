@@ -112,6 +112,22 @@ public class TokenizerTest
     //Hex
     Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "0x123abc")),
             tokenize("0x123abc"));
+    //Octal
+    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "0O1342")),
+            tokenize("0O1342"));
+    //Implied Octal
+    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "01323")),
+            tokenize("01323"));
+    //Implied Octal turned Dec
+    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "0778.4")),
+            tokenize("0778.4"));
+    //Exponential
+    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "123e4")),
+            tokenize("123e4"));
+    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "123e+4")),
+            tokenize("123e+4"));
+    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "12.3e-4")),
+            tokenize("12.3e-4"));
     //Binary
     Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "0b1011")),
             tokenize("0b1011"));
@@ -133,6 +149,14 @@ public class TokenizerTest
     Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "0b101"),
             new Tokenizer.Token(TokenType.NUMBER, "234")),
             tokenize("0b101234"));
+    //Octal with decimal point; should be caught as unexpected number
+    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "0134"),
+            new Tokenizer.Token(TokenType.NUMBER, ".2")),
+            tokenize("0134.2"));
+    //Exponent with decimal point; should be caught as unexpected number
+    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "5e5"),
+            new Tokenizer.Token(TokenType.NUMBER, ".5")),
+            tokenize("5e5.5"));
   }
 
   @Test
