@@ -114,12 +114,12 @@ public class TokenizerTest {
         Assert.assertEquals(TokenType.LPAREN, list.get(2).getTokenType());
         Assert.assertEquals(TokenType.RPAREN, list.get(3).getTokenType());
         Assert.assertEquals(TokenType.LBRACE, list.get(4).getTokenType());
-        Assert.assertEquals(TokenType.SYMBOL, list.get(5).getTokenType());
+        Assert.assertEquals(TokenType.KEYWORD, list.get(5).getTokenType());
         Assert.assertEquals(TokenType.SYMBOL, list.get(6).getTokenType());
         Assert.assertEquals(TokenType.OPERATOR, list.get(7).getTokenType());
         Assert.assertEquals(TokenType.NUMBER, list.get(8).getTokenType());
         Assert.assertEquals(TokenType.SEMICOLON, list.get(9).getTokenType());
-        Assert.assertEquals(TokenType.SYMBOL, list.get(10).getTokenType());
+        Assert.assertEquals(TokenType.KEYWORD, list.get(10).getTokenType());
         Assert.assertEquals(TokenType.SYMBOL, list.get(11).getTokenType());
         Assert.assertEquals(TokenType.OPERATOR, list.get(12).getTokenType());
         Assert.assertEquals(TokenType.NUMBER, list.get(13).getTokenType());
