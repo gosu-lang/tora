@@ -19,15 +19,25 @@ public class TokenizerTest
   public void bootstrapTest()
   {
     List<Tokenizer.Token> num = tokenize("123");
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "123")), num);
+    assertTokensEq( num, t( TokenType.NUMBER, "123" ) );
+
     //Whitespace tests
     Assert.assertEquals(num, tokenize(" 123"));
     Assert.assertEquals(num, tokenize("   123  "));
     //Two tokens
     List<Tokenizer.Token> twoNum = tokenize("123  456");
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "123"),
-                                      new Tokenizer.Token(TokenType.NUMBER, "456")), twoNum);
 
+    assertTokensEq( twoNum, t( TokenType.NUMBER, "123" ), t( TokenType.NUMBER, "456" ) );
+  }
+
+  private void assertTokensEq( List<Tokenizer.Token> actual, Tokenizer.Token... expected )
+  {
+    Assert.assertEquals( Arrays.asList( expected ), actual );
+  }
+
+  private Tokenizer.Token t( TokenType type, String val )
+  {
+    return new Tokenizer.Token( type, val );
   }
 
   @Test
