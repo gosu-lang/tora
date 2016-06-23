@@ -47,11 +47,16 @@ public enum TokenType {
 
     //Rules for identifier names from emca-262 section 11.6.1
     public static boolean startsIdentifier(char ch) {
-        return String.valueOf(ch).matches("[a-zA-Z$_]");
+        return (ch >= 'a' && ch <= 'z') ||
+                (ch >= 'A' && ch <= 'Z') ||
+                ch == '$' || ch == '_';
     }
 
     public static boolean partOfIdentifier(char ch) {
-        return String.valueOf(ch).matches("[0-9a-zA-Z$_]");
+        return (ch >= '0' && ch <= '9') ||
+                (ch >= 'a' && ch <= 'z') ||
+                (ch >= 'A' && ch <= 'Z') ||
+                ch == '$' || ch == '_';
     }
 
     public static boolean isKeyword(String word) {
@@ -83,11 +88,13 @@ public enum TokenType {
     }
 
     public static boolean isHexCh(char ch) {
-        return String.valueOf(ch).matches("[0-9a-fA-F]");
+        return (ch <= '9' && ch >= '0') ||
+                (ch >= 'a' && ch <= 'f') ||
+                (ch >= 'A' && ch <= 'F');
     }
 
     public static boolean isDigit(char ch) {
-        return String.valueOf(ch).matches("[0-9]");
+        return (ch <= '9' && ch >= '0');
     }
 
     public static boolean isBinary(char ch) {
@@ -95,7 +102,7 @@ public enum TokenType {
     }
 
     public static boolean isOctal(char ch) {
-        return String.valueOf(ch).matches("[0-7]");
+        return (ch <= '7' && ch >= '0');
     }
 
 
