@@ -202,23 +202,94 @@ public class Tokenizer
     else return newToken(TokenType.IDENTIFIER, strVal);
   }
 
-  /* Strings can use ' or " in javascript */
+  /* Syntax for string literal taken from emca 6 language specs 11.8.4
+   * Since tokenizer is for transpiler, do not worry about escaping characters
+   */
   private Token consumeString() {
     char enterQuote = _ch; //Can be either ' or "
     StringBuilder val = new StringBuilder(String.valueOf(_ch));
     nextChar();
     //Consume string until we find a non-escaped quote matching the enter quote
-    for (;!(_ch == enterQuote && val.charAt(val.length()-1) != '\\'); nextChar()) {
+    while (!(_ch == enterQuote)) {
       //error if EOF comes before terminating quote
       if (reachedEOF()) return newToken(TokenType.ERROR, "unterminated string");
       //error if line terminator in string
-      if (_ch == '\n' || _ch =='\r') return newToken(TokenType.ERROR, "newline character in string");
+      if (TokenType.isLineTerminator(_ch)) return newToken(TokenType.ERROR, "newline character in string");
+
       val.append(_ch);
+      //Make sure escape sequences are legal
+      if (_ch == '\\') {
+        String escapeSeq = consumeEscapeSequence();
+        if (escapeSeq == null) return newToken(TokenType.ERROR, "illegal escape sequence");
+        val.append(escapeSeq);
+      } else nextChar();
     }
-    val.append(_ch); //add closing quote;
+    val.append(_ch); //add closing quote
     nextChar();
     return newToken(TokenType.STRING, val.toString());
   }
+
+  /*Helper to consume and validate escape sequences,
+  * since invalid unicode and hex escapes are illegal; octal escapes should always be legal*/
+  private String consumeEscapeSequence() {
+    nextChar();
+    switch (_ch) {
+      case 'u': return consumeUnicodeEscapeSequence();
+      case 'x': return consumeHexEscapeSequence();
+      /* Consumes single escapes (' " \ b \f n r t v), and non-escaped (such as 'a' where \ will be ignored)
+       * and newlines and ending quotes (for line continuation)
+       */
+      default:
+        String val = String.valueOf(_ch);
+        nextChar();
+        return val;
+    }
+  }
+
+  /*Unicode escape sequence are either uHexHexHexHex or u{Hex+}*/
+  private String consumeUnicodeEscapeSequence() {
+    final long MAX_UNICODE_NUM = 0x10FFFF;
+    StringBuilder val = new StringBuilder(String.valueOf(_ch));
+    nextChar();
+    if (_ch == '{') {
+      val.append(_ch);
+      nextChar();
+      StringBuilder num = new StringBuilder();
+      for (; _ch != '}'; nextChar()) {
+        if (!TokenType.isHexCh(_ch)) return null;
+        num.append(_ch);
+      }
+      //error if exceeds max unicode number
+      if (Long.parseLong(num.toString(), 16) > MAX_UNICODE_NUM) return null;
+      else {
+        val.append(num); //Append hex unicode number, and closing }
+        val.append(_ch);
+        nextChar();
+        return val.toString();
+      }
+    } else {
+      //Must have exactly 4 hex digits in this pattern
+      for (int i = 0; i < 4; i++) {
+        if (!TokenType.isHexCh(_ch)) return null;
+        val.append(_ch);
+        nextChar();
+      }
+      return val.toString();
+    }
+  }
+
+  /*hex escape sequences must be uHexHex*/
+  private String consumeHexEscapeSequence() {
+    StringBuilder val = new StringBuilder(String.valueOf(_ch));
+    nextChar();
+    for (int i = 0; i < 2; i++) {
+      if (!TokenType.isHexCh(_ch)) return null;
+      val.append(_ch);
+      nextChar();
+    }
+    return val.toString();
+  }
+
 
   /*Consumes punctuation, which are all single characters*/
   private Token consumePunctuation() {

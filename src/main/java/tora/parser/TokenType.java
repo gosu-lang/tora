@@ -52,6 +52,7 @@ public enum TokenType {
                 ch == '$' || ch == '_';
     }
 
+    //todo: add unicode characters
     public static boolean partOfIdentifier(char ch) {
         return (ch >= '0' && ch <= '9') ||
                 (ch >= 'a' && ch <= 'z') ||
@@ -103,6 +104,11 @@ public enum TokenType {
 
     public static boolean isOctal(char ch) {
         return (ch <= '7' && ch >= '0');
+    }
+
+    //Taken from emca 6 language spec 11.3
+    public static boolean isLineTerminator(char ch) {
+        return "\n\r\u2028\u2029".indexOf(ch) >= 0;
     }
 
 

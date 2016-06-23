@@ -137,6 +137,17 @@ public class TokenizerTest
     assertTokenTypesEq(tokenize("'Carson Gross is \\'nice\\''"),t(TokenType.STRING, "'Carson Gross is \\'nice\\''"));
     //Escaped Double quotes
     assertTokenTypesEq(tokenize("\"Carson is \\\"nice\\\"\""),t(TokenType.STRING, "\"Carson is \\\"nice\\\"\""));
+    //Escaped non-escape characters (which apparently is okay in javascript
+    assertTokenTypesEq(tokenize("\"\\Carson\""),t(TokenType.STRING, "\"\\Carson\""));
+    //Escaped hex
+    assertTokenTypesEq(tokenize("'\\xAF'"),t(TokenType.STRING, "'\\xAF'"));
+    //Escaped unicode
+    assertTokenTypesEq(tokenize("'\\u1adf'"),t(TokenType.STRING, "'\\u1adf'"));
+    assertTokenTypesEq(tokenize("'\\u{10FFFF}'"),t(TokenType.STRING, "'\\u{10FFFF}'"));
+
+    //LineContinuator
+    assertTokenTypesEq(tokenize("\"It's okay as long as there's a \\\n before new lines\""),
+            t(TokenType.STRING, "\"It's okay as long as there's a \\\n before new lines\""));
 
   }
 
@@ -145,10 +156,25 @@ public class TokenizerTest
   {
     //Unterminated quote
     assertTokenTypesEq(tokenize("\"Linux"), t(TokenType.ERROR, "unterminated string"));
-    //Unescaped new line
+    //Illegal newline in middle
     assertTokenTypesEq(tokenize("'Lin\n"), t(TokenType.ERROR, "newline character in string"));
-
+    //Illegal hex escape
+    assertTokenTypesEq(tokenize("'\\x"), t(TokenType.ERROR, "illegal escape sequence"));
+    assertTokenTypesEq(tokenize("'\\x1z"),
+            t(TokenType.ERROR, "illegal escape sequence"),
+            t(TokenType.IDENTIFIER, "z"));
+    assertTokenTypesEq(tokenize("'\\x1"), t(TokenType.ERROR, "illegal escape sequence"));
+    //Illegal unicode
+    assertTokenTypesEq(tokenize("'\\u123"), t(TokenType.ERROR, "illegal escape sequence"));
+    assertTokenTypesEq(tokenize("'\\u13?"),
+            t(TokenType.ERROR, "illegal escape sequence"),
+            t(TokenType.OPERATOR, "?"));
+    assertTokenTypesEq(tokenize("'\\u{13?"),
+            t(TokenType.ERROR, "illegal escape sequence"),
+            t(TokenType.OPERATOR, "?"));
+    assertTokenTypesEq(tokenize("'\\u{11FFFF"), t(TokenType.ERROR, "illegal escape sequence")); //too large unicode
   }
+
 
   //Test bootstrap.js with line numbers
   @Test
