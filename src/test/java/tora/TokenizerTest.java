@@ -70,12 +70,24 @@ public class TokenizerTest {
 
     @Test
     public void testTokenizerStrings() {
-        Tokenizer toke = new Tokenizer("\"Hello\"");
+        Tokenizer toke = new Tokenizer("\"Hello \" " + " \" \n \" " + " \" \\0\\b\\f\\r\\t\\v\\'\\321\\xab \\uabcd \\u{abcde} \"");
         ArrayList<Tokenizer.Token> list = toke.tokenize();
-        Tokenizer.Token token = list.get(0);
-        Assert.assertEquals(TokenType.STRING, token.getTokenType());
+        Assert.assertEquals(TokenType.STRING, list.get(0).getTokenType());
+        Assert.assertEquals(TokenType.STRING, list.get(1).getTokenType());
+        Assert.assertEquals(TokenType.STRING, list.get(2).getTokenType());
+
     }
 
+    @Test
+    //This test will look at the various values that should generate errors instead of strings
+    public void testInvalidTokenizerStrings () {
+        Tokenizer toke = new Tokenizer("\" \\543 \"" + "\" \\q \" " + " \" \n \" " + "\" \\xak  \"");
+        ArrayList<Tokenizer.Token> list = toke.tokenize();
+        Assert.assertEquals(TokenType.ERROR, list.get(0).getTokenType());
+        Assert.assertEquals(TokenType.ERROR, list.get(1).getTokenType());
+        Assert.assertEquals(TokenType.STRING, list.get(2).getTokenType());
+        Assert.assertEquals(TokenType.ERROR, list.get(3).getTokenType());
+    }
 
     @Test
     public void testTokenizerProgram() {

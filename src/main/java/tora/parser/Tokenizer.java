@@ -148,19 +148,75 @@ public class Tokenizer
         }
     }
 
-    private Token consumeString(){
-        String str = "";
-        String val = Character.toString(ch);
-        String charactersRegex = "^[ ;:\"\\]";
+    private Token makeErrorToken(String message) {
+        return newToken(TokenType.ERROR, message);
+    }
+
+    private boolean isValidSpecialCharacter() {
         nextChar();
-        while(ch != '"' && ch != '\0'){
+        String validChars = "0rftbnv\"\'\\";
+        String validOctals = "01234567";
+        String validPreOctals = "0123";
+        String validHex = "0123456789abcdefghABCDEFGH";
+        if(validChars.indexOf(ch) > -1) {
+            return true;
+        } else if (validPreOctals.indexOf(ch) > -1) {
+            nextChar();
+            if(validOctals.indexOf(ch) < 0) return false;
+            nextChar();
+            if(validOctals.indexOf(ch) < 0) return false;
+
+        } else if(ch == 'x') {
+            nextChar();
+            if(validHex.indexOf(ch) < 0) return false;
+            nextChar();
+            if(validHex.indexOf(ch) < 0) return false;
+        } else if (ch == 'u'){
+            boolean isPointEscape = false;
+            nextChar();
+            if(ch == '{')  {
+                isPointEscape = true;
+                nextChar();
+            }
+            if(validHex.indexOf(ch) < 0) return false;
+            nextChar();
+            if(validHex.indexOf(ch) < 0) return false;
+            nextChar();
+            if(validHex.indexOf(ch) < 0) return false;
+            nextChar();
+            if(validHex.indexOf(ch) < 0) return false;
+
+            if(isPointEscape == true)  {
+                nextChar();
+                if(validHex.indexOf(ch) < 0) return false;
+                nextChar();
+                if(ch != '}') return false;
+            }
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    private Token consumeString() {
+        String str = "";
+        boolean isValid = true;
+        nextChar();
+        while (ch != '"' && ch != '\0') {
+            if (ch == '\\') {
+                isValid = isValid && isValidSpecialCharacter();
+            }
             str = str + ch;
             nextChar();
         }
         nextChar();
 
         str = "\"" + str + "\"";
-        return newToken(TokenType.STRING, str);
+        if (isValid) {
+            return newToken(TokenType.STRING, str);
+        } else {
+            return newToken(TokenType.ERROR, str);
+        }
     }
 
     private Token consumeBase2Number() {
