@@ -97,7 +97,9 @@ public class Tokenizer
       ret = newToken(TokenType.EOF, "EOF");
     } else  {
       ret = newToken(TokenType.ERROR, "unknown char");
+      nextChar();
     }
+
     return ret;
   }
 
@@ -190,10 +192,13 @@ public class Tokenizer
     nextChar();
     //Consume string until we find a non-escaped quote matching the enter quote
     for (;!(_ch == enterQuote && val.charAt(val.length()-1) != '\\'); nextChar()) {
-      val.append(_ch);
       //error if EOF comes before terminating quote
       if (reachedEOF()) return newToken(TokenType.ERROR, "unterminated string");
+      //error if line terminator in string
+      if (_ch == '\n' || _ch =='\r') return newToken(TokenType.ERROR, "newline character in string");
+      val.append(_ch);
     }
+    System.out.println("end of consume string");
     val.append(_ch); //add closing quote;
     nextChar();
     return newToken(TokenType.STRING, val.toString());

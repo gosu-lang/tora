@@ -183,9 +183,18 @@ public class TokenizerTest
     //Escaped Double quotes
     Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.STRING, "\"Carson Gross is \\\"nice\\\" \"")),
             tokenize("\"Carson Gross is \\\"nice\\\" \""));
+
+  }
+
+  @Test
+  public void stringErrorsTest()
+  {
     //Unterminated quote
     Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.ERROR, "unterminated string")),
             tokenize("\"Linux"));
+    //Unescaped new line
+    System.out.println(tokenize("'Lin\\nux'").toString());
+
   }
 
   @Test
