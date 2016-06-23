@@ -84,8 +84,7 @@ public class TokenizerTest
   }
 
   @Test
-  public void numberTest()
-  {
+  public void numberTest() {
     //Integer
     assertTokenTypesEq(tokenize("12345"), t(TokenType.NUMBER, "12345"));
     //Decimal
@@ -95,17 +94,19 @@ public class TokenizerTest
     //Octal
     assertTokenTypesEq(tokenize("0O1342"), t(TokenType.NUMBER, "0O1342"));
     //Implied Octal
-    assertTokenTypesEq(tokenize("01323"),t(TokenType.NUMBER, "01323"));
+    assertTokenTypesEq(tokenize("01323"), t(TokenType.NUMBER, "01323"));
     //Implied Octal turned Dec
-    assertTokenTypesEq(tokenize("0778.4"),t(TokenType.NUMBER, "0778.4"));
+    assertTokenTypesEq(tokenize("0778.4"), t(TokenType.NUMBER, "0778.4"));
     //Exponential
-    assertTokenTypesEq(tokenize("123e4"),t(TokenType.NUMBER, "123e4"));
-    assertTokenTypesEq(tokenize("123e+4"),t(TokenType.NUMBER, "123e+4"));
-    assertTokenTypesEq(tokenize("12.3e-4"),t(TokenType.NUMBER, "12.3e-4"));
+    assertTokenTypesEq(tokenize("123e4"), t(TokenType.NUMBER, "123e4"));
+    assertTokenTypesEq(tokenize("123e+4"), t(TokenType.NUMBER, "123e+4"));
+    assertTokenTypesEq(tokenize("12.3e-4"), t(TokenType.NUMBER, "12.3e-4"));
     //Binary
-    assertTokenTypesEq(tokenize("0b1011"),t(TokenType.NUMBER, "0b1011"));
+    assertTokenTypesEq(tokenize("0b1011"), t(TokenType.NUMBER, "0b1011"));
+  }
 
-    /*Errors*/
+  @Test
+  public void numbersErrorsTest() {
     //Multiple decimal points; should be caught as unexpected number during parsing
     assertTokenTypesEq(tokenize("123.456.789"),t(TokenType.NUMBER, "123.456"), t(TokenType.NUMBER, ".789"));
     //Decimal point at end; should be caught as unexpected punctuation (or end of input?) by parser
@@ -119,7 +120,7 @@ public class TokenizerTest
     //Exponent with decimal point; should be caught as unexpected number
     assertTokenTypesEq(tokenize("5e5.5"), t(TokenType.NUMBER, "5e5"), t(TokenType.NUMBER, ".5"));
     //Marked as binary, with no value following
-    assertTokenTypesEq(tokenize("0b"), t(TokenType.ERROR, "illegal number token"));
+    assertTokenTypesEq(tokenize("0b"), t(TokenType.ERROR, "0b", "illegal number token"));
   }
 
   @Test
@@ -155,24 +156,19 @@ public class TokenizerTest
   public void stringErrorsTest()
   {
     //Unterminated quote
-    assertTokenTypesEq(tokenize("\"Linux"), t(TokenType.ERROR, "unterminated string"));
+    assertTokenTypesEq(tokenize("\"Linux"), t(TokenType.ERROR, "\"Linux", "unterminated string"));
     //Illegal newline in middle
-    assertTokenTypesEq(tokenize("'Lin\n"), t(TokenType.ERROR, "newline character in string"));
+    assertTokenTypesEq(tokenize("'Lin\nux'"), t(TokenType.ERROR, "'Lin\nux'", "newline character in string"));
     //Illegal hex escape
-    assertTokenTypesEq(tokenize("'\\x"), t(TokenType.ERROR, "illegal escape sequence"));
-    assertTokenTypesEq(tokenize("'\\x1z"),
-            t(TokenType.ERROR, "illegal escape sequence"),
-            t(TokenType.IDENTIFIER, "z"));
-    assertTokenTypesEq(tokenize("'\\x1"), t(TokenType.ERROR, "illegal escape sequence"));
+    assertTokenTypesEq(tokenize("'\\x1'"), t(TokenType.ERROR, "'\\x1'", "non-hex character in hex escape"));
+    assertTokenTypesEq(tokenize("'\\x1'"), t(TokenType.ERROR, "'\\x1'", "non-hex character in hex escape"));
+    assertTokenTypesEq(tokenize("'\\x1z'"), t(TokenType.ERROR, "'\\x1z'", "non-hex character in hex escape"));
     //Illegal unicode
-    assertTokenTypesEq(tokenize("'\\u123"), t(TokenType.ERROR, "illegal escape sequence"));
-    assertTokenTypesEq(tokenize("'\\u13?"),
-            t(TokenType.ERROR, "illegal escape sequence"),
-            t(TokenType.OPERATOR, "?"));
-    assertTokenTypesEq(tokenize("'\\u{13?"),
-            t(TokenType.ERROR, "illegal escape sequence"),
-            t(TokenType.OPERATOR, "?"));
-    assertTokenTypesEq(tokenize("'\\u{11FFFF"), t(TokenType.ERROR, "illegal escape sequence")); //too large unicode
+    assertTokenTypesEq(tokenize("'\\u123'"), t(TokenType.ERROR, "'\\u123'", "non-hex character in unicode escape"));
+    assertTokenTypesEq(tokenize("'\\u13?'"), t(TokenType.ERROR, "'\\u13?'", "non-hex character in unicode escape"));
+    assertTokenTypesEq(tokenize("'\\u{13:D}'"), t(TokenType.ERROR, "'\\u{13:D}'", "non-hex character in unicode escape"));
+    //Unicode too large
+    assertTokenTypesEq(tokenize("'\\u{11FFFF}'"), t(TokenType.ERROR, "'\\u{11FFFF}'", "undefined Unicode point"));
   }
 
 
@@ -273,6 +269,10 @@ public class TokenizerTest
   private Tokenizer.Token t( TokenType type, String val )
   {
     return new Tokenizer.Token( type, val );
+  }
+
+  private Tokenizer.Token t(TokenType type, String val, String errMsg) {
+    return new Tokenizer.Token( type, val, errMsg);
   }
 
   private Tokenizer.Token t( TokenType type, String val, int lineNumber, int col, int offset)

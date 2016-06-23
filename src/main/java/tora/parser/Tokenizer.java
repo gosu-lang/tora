@@ -14,10 +14,17 @@ public class Tokenizer
     private int _offset;
     private TokenType _type;
     private String _val;
+    private String _errorMsg;
 
     public Token(TokenType type, String val) {
       _type = type;
       _val = val;
+    }
+
+    public Token(TokenType type, String val, String errorMsg) {
+      _type = type;
+      _val = val;
+      _errorMsg = errorMsg;
     }
 
     public Token(TokenType type, String val, int lineNumber, int col, int offset) {
@@ -34,6 +41,10 @@ public class Tokenizer
 
     public String getValue() {
       return _val;
+    }
+
+    public String getErrorMsg() {
+      return _errorMsg;
     }
 
     @Override
@@ -113,7 +124,7 @@ public class Tokenizer
     } else if (reachedEOF()) {
       ret = newToken(TokenType.EOF, "EOF");
     } else  {
-      ret = newToken(TokenType.ERROR, "unknown char");
+      ret = errToken(String.valueOf(_ch), "unknown char");
       nextChar();
     }
 
@@ -162,7 +173,7 @@ public class Tokenizer
     }
     //If explicitly starts with 0x, 0o, or 0b; throw an error if nothing after
     if ((isHex || isBin || isOctal) && val.length() <= 2) {
-      return newToken(TokenType.ERROR, "illegal number token");
+      return errToken(val.toString(), "illegal number token");
     }
     return newToken (TokenType.NUMBER, val.toString());
   }
@@ -171,7 +182,7 @@ public class Tokenizer
    * is optionally followed by a sign, and then contains only integers
    */
   private Token consumeExponent(StringBuilder val) {
-    val.append(_ch);
+    val.append(_ch); //consume 'e' or 'E'
     nextChar();
     //Consume optional + or -
     if (_ch == '+' || _ch == '-') {
@@ -207,87 +218,86 @@ public class Tokenizer
    */
   private Token consumeString() {
     char enterQuote = _ch; //Can be either ' or "
+    String errorMsg = null;
     StringBuilder val = new StringBuilder(String.valueOf(_ch));
     nextChar();
     //Consume string until we find a non-escaped quote matching the enter quote
     while (!(_ch == enterQuote)) {
       //error if EOF comes before terminating quote
-      if (reachedEOF()) return newToken(TokenType.ERROR, "unterminated string");
+      if (reachedEOF()) return errToken(val.toString(), "unterminated string");
       //error if line terminator in string
-      if (TokenType.isLineTerminator(_ch)) return newToken(TokenType.ERROR, "newline character in string");
+      if (TokenType.isLineTerminator(_ch)) errorMsg = "newline character in string";
 
       val.append(_ch);
       //Make sure escape sequences are legal
       if (_ch == '\\') {
-        String escapeSeq = consumeEscapeSequence();
-        if (escapeSeq == null) return newToken(TokenType.ERROR, "illegal escape sequence");
-        val.append(escapeSeq);
+        errorMsg = consumeEscapeSequence(val);
       } else nextChar();
     }
     val.append(_ch); //add closing quote
     nextChar();
+    if (errorMsg != null) return errToken(val.toString(), errorMsg);
     return newToken(TokenType.STRING, val.toString());
   }
 
-  /*Helper to consume and validate escape sequences,
-  * since invalid unicode and hex escapes are illegal; octal escapes should always be legal*/
-  private String consumeEscapeSequence() {
+  /*Helper to consume and validate escape sequences;
+  *  Marks invalid unicode and hex escapes are illegal; octal escapes should always be legal.
+  *  Returns an error message if illegal escape */
+  private String consumeEscapeSequence(StringBuilder val) {
     nextChar();
     switch (_ch) {
-      case 'u': return consumeUnicodeEscapeSequence();
-      case 'x': return consumeHexEscapeSequence();
+      case 'u': return consumeUnicodeEscapeSequence(val);
+      case 'x': return consumeHexEscapeSequence(val);
       /* Consumes single escapes (' " \ b \f n r t v), and non-escaped (such as 'a' where \ will be ignored)
        * and newlines and ending quotes (for line continuation)
        */
       default:
-        String val = String.valueOf(_ch);
+        val.append(_ch);
         nextChar();
-        return val;
+        return null;
     }
   }
 
   /*Unicode escape sequence are either uHexHexHexHex or u{Hex+}*/
-  private String consumeUnicodeEscapeSequence() {
+  private String consumeUnicodeEscapeSequence(StringBuilder val) {
     final long MAX_UNICODE_NUM = 0x10FFFF;
-    StringBuilder val = new StringBuilder(String.valueOf(_ch));
+    val.append(_ch); //consume 'u'
     nextChar();
     if (_ch == '{') {
       val.append(_ch);
       nextChar();
-      StringBuilder num = new StringBuilder();
+      StringBuilder num = new StringBuilder(); //keep track of hex number to check if valid unicode
       for (; _ch != '}'; nextChar()) {
-        if (!TokenType.isHexCh(_ch)) return null;
+        if (!TokenType.isHexCh(_ch)) return "non-hex character in unicode escape";
         num.append(_ch);
-      }
-      //error if exceeds max unicode number
-      if (Long.parseLong(num.toString(), 16) > MAX_UNICODE_NUM) return null;
-      else {
-        val.append(num); //Append hex unicode number, and closing }
         val.append(_ch);
-        nextChar();
-        return val.toString();
       }
+      val.append(_ch); //consume closing }
+      nextChar();
+      //error if exceeds max unicode number
+      if (Long.parseLong(num.toString(), 16) > MAX_UNICODE_NUM) return "undefined Unicode point";
+      else return null;
     } else {
       //Must have exactly 4 hex digits in this pattern
       for (int i = 0; i < 4; i++) {
-        if (!TokenType.isHexCh(_ch)) return null;
+        if (!TokenType.isHexCh(_ch)) return "non-hex character in unicode escape";
         val.append(_ch);
         nextChar();
       }
-      return val.toString();
+      return null;
     }
   }
 
   /*hex escape sequences must be uHexHex*/
-  private String consumeHexEscapeSequence() {
-    StringBuilder val = new StringBuilder(String.valueOf(_ch));
+  private String consumeHexEscapeSequence(StringBuilder val) {
+    val.append(_ch); //consume 'x'
     nextChar();
     for (int i = 0; i < 2; i++) {
-      if (!TokenType.isHexCh(_ch)) return null;
+      if (!TokenType.isHexCh(_ch)) return "non-hex character in hex escape";
       val.append(_ch);
       nextChar();
     }
-    return val.toString();
+    return null;
   }
 
 
@@ -379,6 +389,11 @@ public class Tokenizer
   private Token newToken(TokenType type, String val) {
     return new Token(type, val, _bLineNumber, _bCol, _bOffset);
   }
+
+  private Token errToken(String val, String errorMsg) {
+    return new Token(TokenType.ERROR, val, errorMsg);
+  }
+
 
   private boolean reachedEOF() {
     return _ch == (char) -1;
