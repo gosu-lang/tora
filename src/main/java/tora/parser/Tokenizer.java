@@ -64,8 +64,10 @@ public class Tokenizer
         put("var",TokenType.KEYWORD );
         put("delete",TokenType.KEYWORD );
         put("eval",TokenType.KEYWORD );
+        put("static",TokenType.KEYWORD );
         put("new",TokenType.KEYWORD );
         put("void",TokenType.KEYWORD );
+        put("this",TokenType.KEYWORD );
         put("default",TokenType.KEYWORD );
         put("import",TokenType.RESERVED );
         put("extends",TokenType.RESERVED );
@@ -92,19 +94,9 @@ public class Tokenizer
         return _string;
     }
 
-    public static TokenType getTokenType(Token toke){
-        return toke.getTokenType();
-    }
-
-    public static String getTokenString(Token toke){
-        return toke.getTokenStringValue();
-    }
-
-    public static double getTokenValue(Token toke) {
-        return toke.getTokenNumberValue();
-    }
     private Token next(){
         removeWhiteSpace();
+        trackPosition();
         switch (ch) {
             case '0':
                 return consumeBase2Number();
@@ -156,21 +148,6 @@ public class Tokenizer
         }
     }
 
-    private char nextChar(){
-
-        if(_offset < _string.length()) {
-            ch = _string.charAt(_offset);
-            if(ch == '\n') {
-                _line++;
-                _column = 0;
-            }
-            _offset++;
-            _column++;
-        } else {
-            ch = '\0';
-        }
-        return ch;
-    }
     private Token consumeString(){
         String str = "";
         String val = Character.toString(ch);
@@ -190,7 +167,8 @@ public class Tokenizer
         Double val = 0.0;
 
         StringBuffer buff = new StringBuffer();
-        while(('0' <= ch && ch <= '9') || (ch >= 'a' && ch <= 'h') || (ch >= 'A' && ch <= 'H') || ch == 'x' ||
+        while(('0' <= ch && ch <= '9') || (ch >= 'a' && ch <= 'h')
+                || (ch >= 'A' && ch <= 'H') || ch == 'x' ||
                 ch == 'X' ||ch == 'o' ||ch == 'O'){
             buff.append(ch);
             nextChar();
@@ -230,7 +208,7 @@ public class Tokenizer
     }
 
     private void removeWhiteSpace(){
-        while(ch == ' ') { nextChar();}
+        while(ch == ' ' || ch == '\n') { nextChar();}
     }
 
     private Token consumeOperator() {
@@ -271,17 +249,44 @@ public class Tokenizer
     }
 
     private Token newToken(TokenType type, String tokenValue){
-        return new Token(type, tokenValue, _line, _column, _offset +1, 0);
+        return new Token(type, tokenValue, _posLine, _posCol, _posOffset, 0);
     }
     private Token newNumberToken(TokenType type, String tokenValue, Double num){
-        return new Token(type, tokenValue, _line, _column, _offset+1, num);
+        return new Token(type, tokenValue, _posLine, _posCol, _offset, num);
     }
 
+    private int _posLine;
+    private int _posCol;
+    private int _posOffset;
+
+    private void trackPosition() {
+        _posCol = _column;
+        _posLine = _line;
+        _posOffset = _offset;
+    }
+
+    private char nextChar(){
+
+        if(_offset < _string.length()) {
+            ch = _string.charAt(_offset);
+            if(ch == '\n') {
+                _line++;
+                _column = -1;
+
+            }
+            _offset++;
+            _column++;
+        } else {
+            ch = '\0';
+        }
+        return ch;
+    }
     public ArrayList<Token> tokenize(){
         ArrayList<Token> list = new ArrayList<Token>();
         nextChar();
-
+        trackPosition();
         Token token = next();
+
         while(token.getTokenType() != TokenType.EOF) {
             list.add(token);
             token = next();
