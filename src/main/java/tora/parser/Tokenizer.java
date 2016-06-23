@@ -198,7 +198,6 @@ public class Tokenizer
       if (_ch == '\n' || _ch =='\r') return newToken(TokenType.ERROR, "newline character in string");
       val.append(_ch);
     }
-    System.out.println("end of consume string");
     val.append(_ch); //add closing quote;
     nextChar();
     return newToken(TokenType.STRING, val.toString());

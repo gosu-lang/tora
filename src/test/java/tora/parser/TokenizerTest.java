@@ -19,94 +19,68 @@ public class TokenizerTest
   public void bootstrapTest()
   {
     List<Tokenizer.Token> num = tokenize("123");
-    assertTokensEq( num, t( TokenType.NUMBER, "123" ) );
+    assertTokensEq( num, t(TokenType.NUMBER, "123" ) );
 
     //Whitespace tests
-    Assert.assertEquals(num, tokenize(" 123"));
-    Assert.assertEquals(num, tokenize("   123  "));
+    assertTokensEq(tokenize(" 123   \n456  "), t(TokenType.NUMBER, "123"), t(TokenType.NUMBER, "456"));
+
     //Two tokens
     List<Tokenizer.Token> twoNum = tokenize("123  456");
-
     assertTokensEq( twoNum, t( TokenType.NUMBER, "123" ), t( TokenType.NUMBER, "456" ) );
-  }
-
-  private void assertTokensEq( List<Tokenizer.Token> actual, Tokenizer.Token... expected )
-  {
-    Assert.assertEquals( Arrays.asList( expected ), actual );
-  }
-
-  private Tokenizer.Token t( TokenType type, String val )
-  {
-    return new Tokenizer.Token( type, val );
   }
 
   @Test
   public void simpleKeywordTest()
   {
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.KEYWORD, "for")),
-            tokenize("for"));
+    assertTokensEq(tokenize("for"), t(TokenType.KEYWORD, "for"));
   }
 
   @Test
   public void simpleIdentifierTest()
   {
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.IDENTIFIER, "carson")),
-            tokenize("carson"));
+    assertTokensEq(tokenize("carson"),(t(TokenType.IDENTIFIER, "carson")));
   }
 
   @Test
   public void simpleNullTest()
   {
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NULL, "null")),
-            tokenize("null"));
+    assertTokensEq(tokenize("null"),t(TokenType.NULL, "null"));
   }
 
   @Test
   public void simpleBooleanTest()
   {
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.BOOLEAN, "true")),
-            tokenize("true"));
+    assertTokensEq(tokenize("true"),t(TokenType.BOOLEAN, "true"));
   }
 
   @Test
   public void simplePunctationTest()
   {
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.PUNCTUATION, ",")),
-            tokenize(","));
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.PUNCTUATION, "("),
-            new Tokenizer.Token(TokenType.PUNCTUATION, ")")),
-            tokenize("()"));
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.PUNCTUATION, ".")),
-            tokenize("."));
+    assertTokensEq(tokenize(","),t(TokenType.PUNCTUATION, ","));
+    assertTokensEq(tokenize("()"),t(TokenType.PUNCTUATION, "("), t(TokenType.PUNCTUATION, ")"));
+    assertTokensEq(tokenize("."),t(TokenType.PUNCTUATION, "."));
   }
 
   @Test
   public void simpleOperatorTest()
   {
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.OPERATOR, "*")),
-            tokenize("*"));
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.OPERATOR, "/")),
-            tokenize("/"));
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.OPERATOR, ">=")),
-            tokenize(">="));
+    assertTokensEq(tokenize("*"),t(TokenType.OPERATOR, "*"));
+    assertTokensEq(tokenize("/"),t(TokenType.OPERATOR, "/"));
+    assertTokensEq(tokenize(">="),t(TokenType.OPERATOR, ">="));
     //Error; should be caught as unexpected operator by parser
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.OPERATOR, ">="),
-            new Tokenizer.Token(TokenType.OPERATOR, "<")),
-            tokenize(">=<"));
+    assertTokensEq(tokenize(">=<"),t(TokenType.OPERATOR, ">="), t(TokenType.OPERATOR, "<"));
   }
 
   @Test
   public void simpleCommentTest()
   {
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.COMMENT, "//donald")),
-            tokenize("//donald"));
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.COMMENT, "/*insurance is fun*/")),
-            tokenize("/*insurance is fun*/"));
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.IDENTIFIER, "x"),
-            new Tokenizer.Token(TokenType.OPERATOR, "+"),
-            new Tokenizer.Token(TokenType.COMMENT, "/*comments are fun*/"),
-            new Tokenizer.Token(TokenType.NUMBER, "5")),
-            tokenize("x+/*comments are fun*/5"));
+    assertTokensEq(tokenize("//donald"),t(TokenType.COMMENT, "//donald"));
+    assertTokensEq(tokenize("/*insurance is fun*/"),t(TokenType.COMMENT, "/*insurance is fun*/"));
+    assertTokensEq(tokenize("x+/*comments are fun*/5"),
+            t(TokenType.IDENTIFIER, "x"),
+            t(TokenType.OPERATOR, "+"),
+            t(TokenType.COMMENT, "/*comments are fun*/"),
+            t(TokenType.NUMBER, "5"));
 
   }
 
@@ -114,85 +88,56 @@ public class TokenizerTest
   public void numberTest()
   {
     //Integer
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "12345")),
-            tokenize("12345"));
+    assertTokensEq(tokenize("12345"), t(TokenType.NUMBER, "12345"));
     //Decimal
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "123.45")),
-            tokenize("123.45"));
+    assertTokensEq(tokenize("123.45"), t(TokenType.NUMBER, "123.45"));
     //Hex
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "0x123abc")),
-            tokenize("0x123abc"));
+    assertTokensEq(tokenize("0x123abc"), t(TokenType.NUMBER, "0x123abc"));
     //Octal
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "0O1342")),
-            tokenize("0O1342"));
+    assertTokensEq(tokenize("0O1342"), t(TokenType.NUMBER, "0O1342"));
     //Implied Octal
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "01323")),
-            tokenize("01323"));
+    assertTokensEq(tokenize("01323"),t(TokenType.NUMBER, "01323"));
     //Implied Octal turned Dec
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "0778.4")),
-            tokenize("0778.4"));
+    assertTokensEq(tokenize("0778.4"),t(TokenType.NUMBER, "0778.4"));
     //Exponential
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "123e4")),
-            tokenize("123e4"));
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "123e+4")),
-            tokenize("123e+4"));
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "12.3e-4")),
-            tokenize("12.3e-4"));
+    assertTokensEq(tokenize("123e4"),t(TokenType.NUMBER, "123e4"));
+    assertTokensEq(tokenize("123e+4"),t(TokenType.NUMBER, "123e+4"));
+    assertTokensEq(tokenize("12.3e-4"),t(TokenType.NUMBER, "12.3e-4"));
     //Binary
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "0b1011")),
-            tokenize("0b1011"));
+    assertTokensEq(tokenize("0b1011"),t(TokenType.NUMBER, "0b1011"));
 
     /*Errors*/
     //Multiple decimal points; should be caught as unexpected number during parsing
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "123.456"),
-            new Tokenizer.Token(TokenType.NUMBER, ".789")),
-            tokenize("123.456.789"));
+    assertTokensEq(tokenize("123.456.789"),t(TokenType.NUMBER, "123.456"), t(TokenType.NUMBER, ".789"));
     //Decimal point at end; should be caught as unexpected punctuation (or end of input?) by parser
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "123.456"),
-            new Tokenizer.Token(TokenType.PUNCTUATION, ".")),
-            tokenize("123.456."));
+    assertTokensEq(tokenize("123.456."),t(TokenType.NUMBER, "123.456"), t(TokenType.PUNCTUATION, "."));
     //Integer with hex numbers; should be caught as unexpected identifier by parser
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "123"),
-            new Tokenizer.Token(TokenType.IDENTIFIER, "abc")),
-            tokenize("123abc"));
+    assertTokensEq(tokenize("123abc"), t(TokenType.NUMBER, "123"), t(TokenType.IDENTIFIER, "abc"));
     //Binary with non 0-1 digits; should be caught as unexpected number by parser
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "0b101"),
-            new Tokenizer.Token(TokenType.NUMBER, "234")),
-            tokenize("0b101234"));
+    assertTokensEq(tokenize("0b101234"), t(TokenType.NUMBER, "0b101"),t(TokenType.NUMBER, "234"));
     //Octal with decimal point; should be caught as unexpected number
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "0134"),
-            new Tokenizer.Token(TokenType.NUMBER, ".2")),
-            tokenize("0134.2"));
+    assertTokensEq(tokenize("0134.2"), t(TokenType.NUMBER, "0134"), t(TokenType.NUMBER, ".2"));
     //Exponent with decimal point; should be caught as unexpected number
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.NUMBER, "5e5"),
-            new Tokenizer.Token(TokenType.NUMBER, ".5")),
-            tokenize("5e5.5"));
+    assertTokensEq(tokenize("5e5.5"), t(TokenType.NUMBER, "5e5"), t(TokenType.NUMBER, ".5"));
     //Marked as binary, with no value following
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.ERROR, "illegal number token")),
-            tokenize("0b"));
+    assertTokensEq(tokenize("0b"), t(TokenType.ERROR, "illegal number token"));
   }
 
   @Test
   public void stringEscapeTest()
   {
     //Double quotes
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.STRING, "\"Carson Gross\"")),
-            tokenize("\"Carson Gross\""));
+    assertTokensEq(tokenize("\"Carson Gross\""), t(TokenType.STRING, "\"Carson Gross\""));
     //Single quotes
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.STRING, "'Carson Gross'")),
-            tokenize("'Carson Gross'"));
+    assertTokensEq(tokenize("'Carson Gross'"), t(TokenType.STRING, "'Carson Gross'"));
     //Single quotes inside double quotes
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.STRING, "\"Carson Gross is 'nice'\"")),
-            tokenize("\"Carson Gross is 'nice'\""));
+    assertTokensEq(tokenize("\"Carson Gross is 'nice'\""), t(TokenType.STRING, "\"Carson Gross is 'nice'\""));
     //Double quotes inside single quotes
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.STRING, "'Carson Gross is \"nice\"'")),
-            tokenize("'Carson Gross is \"nice\"'"));
+    assertTokensEq(tokenize("'Carson Gross is \"nice\"'"),t(TokenType.STRING, "'Carson Gross is \"nice\"'"));
     //Escaped Single quotes
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.STRING, "'Carson Gross is \\'nice\\''")),
-            tokenize("'Carson Gross is \\'nice\\''"));
+    assertTokensEq(tokenize("'Carson Gross is \\'nice\\''"),t(TokenType.STRING, "'Carson Gross is \\'nice\\''"));
     //Escaped Double quotes
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.STRING, "\"Carson Gross is \\\"nice\\\" \"")),
-            tokenize("\"Carson Gross is \\\"nice\\\" \""));
+    assertTokensEq(tokenize("\"Carson is \\\"nice\\\"\""),t(TokenType.STRING, "\"Carson is \\\"nice\\\"\""));
 
   }
 
@@ -200,10 +145,9 @@ public class TokenizerTest
   public void stringErrorsTest()
   {
     //Unterminated quote
-    Assert.assertEquals(Arrays.asList(new Tokenizer.Token(TokenType.ERROR, "unterminated string")),
-            tokenize("\"Linux"));
+    assertTokensEq(tokenize("\"Linux"), t(TokenType.ERROR, "unterminated string"));
     //Unescaped new line
-    System.out.println(tokenize("'Lin\\nux'").toString());
+    assertTokensEq(tokenize("'Lin\n"), t(TokenType.ERROR, "newline character in string"));
 
   }
 
@@ -212,61 +156,60 @@ public class TokenizerTest
   {
     try {
       URL url = getClass().getResource("/bootstrap.js");
-      List<Tokenizer.Token> exampleJS = tokenize(new BufferedReader(new FileReader(url.getFile())));
-      Iterator code = exampleJS.iterator();
-      Assert.assertEquals(new Tokenizer.Token(TokenType.KEYWORD, "function"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.IDENTIFIER, "foo"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, "("), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, ")"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, "{"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.KEYWORD, "return"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.STRING, "\"bar\""), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, "}"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.KEYWORD, "function"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.IDENTIFIER, "identity"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, "("), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.IDENTIFIER, "x"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, ")"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, "{"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.KEYWORD, "return"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.IDENTIFIER, "x"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, "}"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.KEYWORD, "function"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.IDENTIFIER, "returnsJavascriptObject"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, "("), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.IDENTIFIER, "arg"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, ")"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, "{"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.KEYWORD, "var"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.IDENTIFIER, "x"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.OPERATOR, "="), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.NUMBER, "10"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, ";"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.KEYWORD, "var"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.IDENTIFIER, "y"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.OPERATOR, "="), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.KEYWORD, "function"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, "("), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, ")"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, "{"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.KEYWORD, "return"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.NUMBER, "20"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, "}"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.KEYWORD, "return"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, "{"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.STRING, "\"x\""), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.OPERATOR, ":"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.IDENTIFIER, "x"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, ","), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.STRING, "\"y\""), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.OPERATOR, ":"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.IDENTIFIER, "y"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, ","), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.STRING, "\"arg\""), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.OPERATOR, ":"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.IDENTIFIER, "arg"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, "}"), code.next());
-      Assert.assertEquals(new Tokenizer.Token(TokenType.PUNCTUATION, "}"), code.next());
+      assertTokensEq(tokenize(new BufferedReader(new FileReader(url.getFile()))),
+        t(TokenType.KEYWORD, "function"),
+        t(TokenType.IDENTIFIER, "foo"),
+        t(TokenType.PUNCTUATION, "("),
+        t(TokenType.PUNCTUATION, ")"),
+        t(TokenType.PUNCTUATION, "{"),
+        t(TokenType.KEYWORD, "return"),
+        t(TokenType.STRING, "\"bar\""),
+        t(TokenType.PUNCTUATION, "}"),
+        t(TokenType.KEYWORD, "function"),
+        t(TokenType.IDENTIFIER, "identity"),
+        t(TokenType.PUNCTUATION, "("),
+        t(TokenType.IDENTIFIER, "x"),
+        t(TokenType.PUNCTUATION, ")"),
+        t(TokenType.PUNCTUATION, "{"),
+        t(TokenType.KEYWORD, "return"),
+        t(TokenType.IDENTIFIER, "x"),
+        t(TokenType.PUNCTUATION, "}"),
+        t(TokenType.KEYWORD, "function"),
+        t(TokenType.IDENTIFIER, "returnsJavascriptObject"),
+        t(TokenType.PUNCTUATION, "("),
+        t(TokenType.IDENTIFIER, "arg"),
+        t(TokenType.PUNCTUATION, ")"),
+        t(TokenType.PUNCTUATION, "{"),
+        t(TokenType.KEYWORD, "var"),
+        t(TokenType.IDENTIFIER, "x"),
+        t(TokenType.OPERATOR, "="),
+        t(TokenType.NUMBER, "10"),
+        t(TokenType.PUNCTUATION, ";"),
+        t(TokenType.KEYWORD, "var"),
+        t(TokenType.IDENTIFIER, "y"),
+        t(TokenType.OPERATOR, "="),
+        t(TokenType.KEYWORD, "function"),
+        t(TokenType.PUNCTUATION, "("),
+        t(TokenType.PUNCTUATION, ")"),
+        t(TokenType.PUNCTUATION, "{"),
+        t(TokenType.KEYWORD, "return"),
+        t(TokenType.NUMBER, "20"),
+        t(TokenType.PUNCTUATION, "}"),
+        t(TokenType.KEYWORD, "return"),
+        t(TokenType.PUNCTUATION, "{"),
+        t(TokenType.STRING, "\"x\""),
+        t(TokenType.OPERATOR, ":"),
+        t(TokenType.IDENTIFIER, "x"),
+        t(TokenType.PUNCTUATION, ","),
+        t(TokenType.STRING, "\"y\""),
+        t(TokenType.OPERATOR, ":"),
+        t(TokenType.IDENTIFIER, "y"),
+        t(TokenType.PUNCTUATION, ","),
+        t(TokenType.STRING, "\"arg\""),
+        t(TokenType.OPERATOR, ":"),
+        t(TokenType.IDENTIFIER, "arg"),
+        t(TokenType.PUNCTUATION, "}"),
+        t(TokenType.PUNCTUATION, "}"));
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     }
@@ -287,4 +230,15 @@ public class TokenizerTest
     Tokenizer tokenizer = new Tokenizer(reader);
     return tokenizer.tokenize();
   }
+
+  private void assertTokensEq( List<Tokenizer.Token> actual, Tokenizer.Token... expected )
+  {
+    Assert.assertEquals(Arrays.asList( expected ), actual );
+  }
+
+  private Tokenizer.Token t( TokenType type, String val )
+  {
+    return new Tokenizer.Token( type, val );
+  }
+
 }
