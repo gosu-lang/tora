@@ -107,6 +107,7 @@ public class Tokenizer
         removeWhiteSpace();
         switch (ch) {
             case '0':
+                return consumeBase2Number();
             case '1':
             case '2':
             case '3':
@@ -116,28 +117,38 @@ public class Tokenizer
             case '7':
             case '8':
             case '9':
-                return consumeNumber();
+                return consumeDecNumber();
             case '"':
                 return consumeString();
             case '{':
+                nextChar();
                 return newToken(TokenType.LBRACE, "{");
             case '}':
+                nextChar();
                 return newToken(TokenType.RBRACE, "}");
             case ':':
+                nextChar();
                 return newToken(TokenType.COLON, ":");
             case ',':
+                nextChar();
                 return newToken(TokenType.COMMA, ",");
             case '(':
+                nextChar();
                 return newToken(TokenType.LPAREN, "(");
             case ')':
+                nextChar();
                 return newToken(TokenType.RPAREN, ")");
             case '[':
+                nextChar();
                 return newToken(TokenType.LSQUARE, "[");
             case ']':
+                nextChar();
                 return newToken(TokenType.RSQUARE, "]");
             case '\0':
+                nextChar();
                 return newToken(TokenType.EOF, "END");
             case ';':
+                nextChar();
                 return newToken(TokenType.SEMICOLON, ";");
             default:
                 return consumeOther();
@@ -171,45 +182,50 @@ public class Tokenizer
         }
         nextChar();
 
-
         str = "\"" + str + "\"";
         return newToken(TokenType.STRING, str);
     }
-    private Token consumeNumber(){
 
-        Pattern numberPattern = Pattern.compile("[1-9][0-9]*(\\.)?[0-9]*e?\\-?\\+?[0-9]*");
-        Matcher numberMatcher = numberPattern.matcher(_string);
-        numberMatcher.find(_offset-1);
-
-        Pattern hexPattern = Pattern.compile("0x?b?o?X?B?O?[0-9a-f]*");
-        Matcher hexMatcher = hexPattern.matcher(_string);
-        Boolean result = hexMatcher.find(_offset-1);
-        String tokenName = "";
-
+    private Token consumeBase2Number() {
         Double val = 0.0;
-        if(result && hexMatcher.start() == _offset-1){ //Hex/ binary/ or other
-            tokenName = hexMatcher.group();
 
-            String firstTwoLetters = hexMatcher.group().substring(0,2);
-            if(firstTwoLetters.equals("0b") || firstTwoLetters.equals("0B")) {
-                val = Long.parseLong( hexMatcher.group().substring(2), 2) / 1.0;
-            } else if(firstTwoLetters.equals("0o") || firstTwoLetters.equals("0O")){
-                val = Long.parseLong( hexMatcher.group().substring(2), 8) / 1.0;
-            } else if(firstTwoLetters.equals("0x") || firstTwoLetters.equals("0X")){
-                val = Long.parseLong( hexMatcher.group().substring(2), 16) / 1.0;
-            } else if(hexMatcher.group().matches("[0-7]*")) {
-                val = Long.parseLong( hexMatcher.group(), 8) / 1.0;
-            }
-
-        } else { //Decimal
-            tokenName = numberMatcher.group();
-            val = Double.parseDouble(numberMatcher.group());
-        }
-
-        for (int i = 0; i < tokenName.length() - 1; i++) {
+        StringBuffer buff = new StringBuffer();
+        while(('0' <= ch && ch <= '9') || (ch >= 'a' && ch <= 'h') || (ch >= 'A' && ch <= 'H') || ch == 'x' ||
+                ch == 'X' ||ch == 'o' ||ch == 'O'){
+            buff.append(ch);
             nextChar();
         }
-        return newNumberToken(TokenType.NUMBER, tokenName, val);
+        String base2Val = buff.toString();
+        String firstTwoLetters = base2Val.substring(0,2);
+
+        if(firstTwoLetters.equals("0b") || firstTwoLetters.equals("0B")) {
+            val = Long.parseLong( base2Val.substring(2), 2) / 1.0;
+        } else if(firstTwoLetters.equals("0o") || firstTwoLetters.equals("0O")){
+            val = Long.parseLong( base2Val.substring(2), 8) / 1.0;
+        } else if(firstTwoLetters.equals("0x") || firstTwoLetters.equals("0X")){
+            val = Long.parseLong( base2Val.substring(2), 16) / 1.0;
+        } else if(base2Val.matches("[0-7]*")) {
+            val = Long.parseLong( base2Val, 8) / 1.0;
+        }
+
+        return newNumberToken(TokenType.NUMBER, base2Val, val);
+    }
+
+    private Token consumeDecNumber(){
+        StringBuffer buff = new StringBuffer();
+        Boolean readSeperator = false;
+        while(('0' <= ch && ch <= '9') || (!readSeperator && ch == '.')) {
+
+            if(ch == '.') {
+                readSeperator = true;
+            }
+            buff.append(ch);
+            nextChar();
+        }
+
+        Double val = Double.parseDouble(buff.toString());
+
+        return newNumberToken(TokenType.NUMBER, buff.toString(), val);
 
     }
 
@@ -217,36 +233,40 @@ public class Tokenizer
         while(ch == ' ') { nextChar();}
     }
 
+    private Token consumeOperator() {
+        StringBuffer buff = new StringBuffer();
+
+        while((ch <= '?' && ch >= '<') || ch == '|' || ch == '&' || ch == '/' || ch == '+' ||
+                ch == '=' || ch =='-' || ch == '%'|| ch == '*' || ch == '.'){
+            buff.append(ch);
+            nextChar();
+        }
+        return newToken(TokenType.OPERATOR, buff.toString());
+
+    }
+
+    private Token consumeWord() {
+
+        StringBuffer buff = new StringBuffer();
+
+        while((ch >= 'a' && ch <= 'z')||(ch >= 'A' && ch <= 'Z')|| ch == '$' || ch == '_' || (ch >= '0' && ch <= '9')){
+            buff.append(ch);
+            nextChar();
+        }
+        TokenType type = keywordMap.get(buff.toString());
+        if(type == null) {
+            type = TokenType.SYMBOL;
+        }
+
+        return newToken(type, buff.toString());
+    }
 
     private Token consumeOther(){
-        Pattern symbolPattern = Pattern.compile("[A-Za-z0-9$_]*");
-        Matcher symbolMatcher = symbolPattern.matcher(_string);
-        symbolMatcher.find(_offset-1);
-        Pattern operatorPattern = Pattern.compile("[/\\*<>\\?%+=\\-\\.]*");
-        Matcher operatorMatcher = operatorPattern.matcher(_string);
-        operatorMatcher.find(_offset -1);
-
-        String tokenName = "";
-
-        if(symbolMatcher.group().equals("")) { //Operator
-            tokenName = operatorMatcher.group();
-            for (int i = 0; i < tokenName.length() - 1; i++) {
-                nextChar();
-            }
-            return newToken(TokenType.OPERATOR, tokenName);
-
-        } else { // Symbol
-
-            tokenName = symbolMatcher.group();
-            for (int i = 0; i < tokenName.length() - 1; i++) {
-                nextChar();
-            }
-
-            TokenType type = keywordMap.get(tokenName);
-            if(type == null) {
-                type = TokenType.SYMBOL;
-            }
-            return newToken(type, tokenName);
+        if((ch <= '?' && ch >= '<') || ch == '|' || ch == '&' || ch == '/' || ch == '+' ||
+                ch == '=' || ch =='-' || ch == '%' || ch == '*' ||ch =='.') {
+            return consumeOperator();
+        } else {
+            return consumeWord();
         }
     }
 
@@ -264,7 +284,6 @@ public class Tokenizer
         Token token = next();
         while(token.getTokenType() != TokenType.EOF) {
             list.add(token);
-            nextChar();
             token = next();
         }
         return list;
