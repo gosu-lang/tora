@@ -40,19 +40,32 @@ public class Tokenizer
     public boolean equals(Object obj) {
       if (!(obj instanceof Token)) return false;
       Token token = (Token) obj;
-      return _type == token.getType() && _val.equals(token.getValue());
+      return _type == token.getType() && _val.equals(token.getValue())
+              && _lineNumber == token.getLineNumber()
+              && _col == token.getCol()
+              && _offset == token.getOffset();
     }
 
     @Override
     public String toString() {
-      return "type: " + _type + " val: " + _val + "\n";
+      return String.format("type: %s val: %s pos: %d:%d:%d\n", _type, _val, _lineNumber, _col, _offset) ;
     }
 
+    public int getLineNumber() {
+      return _lineNumber;
+    }
+
+    public int getOffset() {
+      return _offset;
+    }
+
+    public int getCol() {
+      return _col;
+    }
   }
 
-  private int _lineNumber;
-  private int _col;
-  private int _offset;
+  private int _bLineNumber, _bCol, _bOffset; //Keeps track of beginning position of tokens
+  private int _lineNumber, _col, _offset; //Keeps track of current position of tokenizer
   private BufferedReader _reader;
   private char _ch;
 
@@ -62,11 +75,15 @@ public class Tokenizer
 
   public Tokenizer(BufferedReader reader) {
     _reader = reader;
+    _lineNumber = 1;
+    _col = 0;
+    _offset = 0;
     nextChar();
   }
 
   public Token next() {
     consumeWhitespace();
+    updatePosition();
     Token ret;
 
     if (_ch == '\'' || _ch == '"') {
@@ -230,7 +247,7 @@ public class Tokenizer
       //error if EOF comes before terminating quote
       if (reachedEOF()) return newToken(TokenType.ERROR, "unterminated multiline comment");
     }
-    val.append(_ch);
+    val.append(_ch); //append closing slash
     nextChar();
     return newToken(TokenType.COMMENT, val.toString());
   }
@@ -281,8 +298,15 @@ public class Tokenizer
     }
   }
 
+  //Updates the start token position when consuming a new token
+  private void updatePosition() {
+    _bCol = _col;
+    _bLineNumber = _lineNumber;
+    _bOffset = _offset;
+  }
+
   private Token newToken(TokenType type, String val) {
-    return new Token(type, val, _lineNumber, _col, _offset);
+    return new Token(type, val, _bLineNumber, _bCol, _bOffset);
   }
 
   private boolean reachedEOF() {
