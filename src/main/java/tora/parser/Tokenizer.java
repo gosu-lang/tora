@@ -51,10 +51,7 @@ public class Tokenizer
     public boolean equals(Object obj) {
       if (!(obj instanceof Token)) return false;
       Token token = (Token) obj;
-      return _type == token.getType() && _val.equals(token.getValue())
-              && _lineNumber == token.getLineNumber()
-              && _col == token.getCol()
-              && _offset == token.getOffset();
+      return _type == token.getType() && _val.equals(token.getValue());
     }
 
     @Override
@@ -86,9 +83,10 @@ public class Tokenizer
 
   public Tokenizer(BufferedReader reader) {
     _reader = reader;
+    //Line number and col are 1 indexed; offset is 0 indexed (nextchar increments col and offset)
     _lineNumber = 1;
     _col = 0;
-    _offset = 0;
+    _offset = -1;
     nextChar();
   }
 
