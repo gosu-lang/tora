@@ -10,6 +10,11 @@ public class Parser
   private Tokenizer.Token _currentToken;
 
 
+  //Constructor sets the src from which the parser reads
+  public Parser(Tokenizer tokenizer){
+      _tokenizer = tokenizer;
+      System.out.println(tokenizer);
+  }
   public boolean isES6Class() {
     return _classNode != null;
   }
