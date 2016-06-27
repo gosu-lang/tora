@@ -7,14 +7,14 @@ public class ConstructorNode extends Node
 {
   private String _args = "";
 
-  public ConstructorNode(String name, Tokenizer.Token start, Tokenizer.Token end )
+  public ConstructorNode(String name )
   {
-    super( name, start, end );
+    super( name );
   }
 
   public ConstructorNode( String name, String args, Tokenizer.Token start, Tokenizer.Token end)
   {
-    super( name, start, end );
+    super( name  );
     _args = args;
   }
 

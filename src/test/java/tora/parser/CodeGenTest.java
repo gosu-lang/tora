@@ -37,38 +37,38 @@ public class CodeGenTest
             "var Foo = function() { \n" +
             "\tfunction Foo(){ _classCallCheck(this,Foo);}\n" +
             "\treturn Foo;\n" +
-            "}();", new ClassNode("Foo", null, null).genCode());
+            "}();", new ClassNode("Foo").genCode());
   }
 
   @Test
   public void testSimpleConstructorNode() {
     Assert.assertEquals("function Foo(){ _classCallCheck(this,Foo);}",
-            new ConstructorNode("Foo",null, null ).genCode());}
+            new ConstructorNode("Foo").genCode());}
 
   @Test
   public void testSimpleFunctionBodyNode() {
     Assert.assertEquals("var foo = 15;",
-            new FunctionBodyNode("var foo = 15;", null, null).genCode());
+            new FunctionBodyNode("var foo = 15;").genCode());
   }
 
   @Test
   public void testSimpleFunctionNode() {
     Assert.assertEquals("Bar.prototype.Foo = function(){}",
-          new FunctionNode("Foo", "Bar", false, null, null).genCode());
+          new FunctionNode("Foo", "Bar", false).genCode());
   }
 
   @Test
   public void testSimplePropertyNode() {
     Assert.assertEquals("get: function get(){}",
-            new PropertyNode("Foo", null, null).genCode());
+            new PropertyNode("Foo").genCode());
   }
 
   @Test
   public void testClassConstruction() {
-    ClassNode demoClass = new ClassNode("DemoClass", null, null);
-    ConstructorNode demoConstructor = new ConstructorNode("DemoClass", null, null);
+    ClassNode demoClass = new ClassNode("DemoClass");
+    ConstructorNode demoConstructor = new ConstructorNode("DemoClass");
     demoClass.addChild(demoConstructor);
-    FunctionBodyNode doh = new FunctionBodyNode("{ this.foo = 42; }", null, null);
+    FunctionBodyNode doh = new FunctionBodyNode("{ this.foo = 42; }");
     demoConstructor.addChild(doh);
     Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
             "var DemoClass = function() { \n" +
@@ -79,13 +79,13 @@ public class CodeGenTest
 
   @Test
   public void testFunctionConstruction() {
-    ClassNode demoClass = new ClassNode("DemoClass", null, null);
-    FunctionNode bar = new FunctionNode("bar", "DemoClass", false, null, null);
-    PropertyNode doh = new PropertyNode("doh", false, null, null);
+    ClassNode demoClass = new ClassNode("DemoClass");
+    FunctionNode bar = new FunctionNode("bar", "DemoClass", false);
+    PropertyNode doh = new PropertyNode("doh", false);
     demoClass.addChild(bar);
     demoClass.addChild(doh);
-    bar.addChild(new FunctionBodyNode("{return this.foo;}", null, null));
-    doh.addChild(new FunctionBodyNode("{return this.foo;}", null, null));
+    bar.addChild(new FunctionBodyNode("{return this.foo;}"));
+    doh.addChild(new FunctionBodyNode("{return this.foo;}"));
     Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
             "var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n" +
             "var DemoClass = function() { \n" +
@@ -138,14 +138,14 @@ public class CodeGenTest
 //        return 42;
 //      }
 //    }
-    ClassNode demoClass = new ClassNode("DemoClass", null, null);
-    ConstructorNode demoConstructor = new ConstructorNode("DemoClass", null, null);
-    FunctionNode bar = new FunctionNode("bar", "DemoClass", false, null, null);
-    PropertyNode dohSet = new PropertyNode("doh", "d", true, null, null);
-    PropertyNode dohGet = new PropertyNode("doh", false, null, null);
-    PropertyNode pohSet = new PropertyNode("poh", "p", true, null, null);
-    PropertyNode pohGet = new PropertyNode("poh", false, null, null);
-    FunctionNode staticFoo = new FunctionNode("staticFoo", "DemoClass", true, null, null);
+    ClassNode demoClass = new ClassNode("DemoClass");
+    ConstructorNode demoConstructor = new ConstructorNode("DemoClass");
+    FunctionNode bar = new FunctionNode("bar", "DemoClass", false);
+    PropertyNode dohSet = new PropertyNode("doh", "d", true);
+    PropertyNode dohGet = new PropertyNode("doh", false);
+    PropertyNode pohSet = new PropertyNode("poh", "p", true);
+    PropertyNode pohGet = new PropertyNode("poh", false);
+    FunctionNode staticFoo = new FunctionNode("staticFoo", "DemoClass", true);
     demoClass.addChild(demoConstructor);
     demoClass.addChild(bar);
     demoClass.addChild(dohSet);
@@ -153,13 +153,13 @@ public class CodeGenTest
     demoClass.addChild(pohSet);
     demoClass.addChild(pohGet);
     demoClass.addChild(staticFoo);
-    demoConstructor.addChild(new FunctionBodyNode("{this.foo = 42;}", null, null));
-    bar.addChild(new FunctionBodyNode("{return this.foo;}", null, null));
-    dohGet.addChild(new FunctionBodyNode("{return this.foo;}", null, null));
-    dohSet.addChild(new FunctionBodyNode("{this.halfDoh = d/2;}", null, null));
-    pohGet.addChild(new FunctionBodyNode("{return this.doh;}", null, null));
-    pohSet.addChild(new FunctionBodyNode("{this.doublePoh = p*2;}", null, null));
-    staticFoo.addChild(new FunctionBodyNode("{return 42;}",null,null));
+    demoConstructor.addChild(new FunctionBodyNode("{this.foo = 42;}"));
+    bar.addChild(new FunctionBodyNode("{return this.foo;}"));
+    dohGet.addChild(new FunctionBodyNode("{return this.foo;}"));
+    dohSet.addChild(new FunctionBodyNode("{this.halfDoh = d/2;}"));
+    pohGet.addChild(new FunctionBodyNode("{return this.doh;}"));
+    pohSet.addChild(new FunctionBodyNode("{this.doublePoh = p*2;}"));
+    staticFoo.addChild(new FunctionBodyNode("{return 42;}"));
     return demoClass;
   }
 
