@@ -10,24 +10,23 @@ public class FunctionNode extends Node
   String _className;
   Boolean _isStatic = false;
 
-  public FunctionNode( String name, Tokenizer.Token start, Tokenizer.Token end )
+  public FunctionNode( String name )
   {
-    super( name, start, end );
+    super( name );
   }
 
   //Test constructor
-  public FunctionNode( String name, String className, boolean isStatic, Tokenizer.Token start, Tokenizer.Token end)
+  public FunctionNode( String name, String className, boolean isStatic )
   {
-    super( name, start, end );
+    super( name );
     _className = className;
     _isStatic = isStatic;
   }
 
   //Test constructor
-  public FunctionNode( String name, String className, String args, boolean isStatic, Tokenizer.Token start, Tokenizer
-          .Token end)
+  public FunctionNode( String name, String className, String args, boolean isStatic )
   {
-    super( name, start, end );
+    super( name );
     _className = className;
     _isStatic = isStatic;
     _args = args;

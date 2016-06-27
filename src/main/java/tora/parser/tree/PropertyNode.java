@@ -8,19 +8,19 @@ public class PropertyNode extends Node
   private String _args = "";
   private boolean _isSetter;
 
-  public PropertyNode( String name, Tokenizer.Token start, Tokenizer.Token end )
+  public PropertyNode( String name )
   {
-    super( name, start, end );
+    super( name );
   }
 
   //Test Constructor
-  public PropertyNode(String name, boolean isSetter, Tokenizer.Token start, Tokenizer.Token end) {
-    super(name, start, end);
+  public PropertyNode(String name, boolean isSetter) {
+    super(name);
     _isSetter = isSetter;
   }
 
-  public PropertyNode(String name, String args, boolean isSetter, Tokenizer.Token start, Tokenizer.Token end) {
-    super(name, start, end);
+  public PropertyNode(String name, String args, boolean isSetter) {
+    super(name);
     _isSetter = isSetter;
     _args = args;
   }

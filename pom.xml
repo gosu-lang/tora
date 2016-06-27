@@ -71,7 +71,7 @@
               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
             </manifest>
             <manifestEntries>
-              <Gosu-Typeloaders>tora.plugin.TypeloaderPlugin</Gosu-Typeloaders>
+              <Gosu-Typeloaders>tora.plugin.JavascriptPlugin</Gosu-Typeloaders>
               <Contains-Sources>gs, gsx, gst</Contains-Sources>
             </manifestEntries>
           </archive>

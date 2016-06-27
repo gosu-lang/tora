@@ -25,8 +25,8 @@ public class ClassNode extends Node {
     private static final List<Class> CLASS_GEN_ORDER = Arrays.asList(ConstructorNode.class, FunctionNode.class,
         PropertyNode.class);
 
-    public ClassNode(String name, Tokenizer.Token start, Tokenizer.Token end) {
-        super(name, start, end);
+    public ClassNode(String name ) {
+        super(name);
     }
 
 
@@ -39,7 +39,7 @@ public class ClassNode extends Node {
 
         if (getChildren(ConstructorNode.class).isEmpty()) {
             //Gen default constructor if no child found
-            code += "\n\t" + new ConstructorNode(getName(),null,null).genCode();
+            code += "\n\t" + new ConstructorNode(getName() ).genCode();
         } else code += "\n\t" + getChildren(ConstructorNode.class).get(0).genCode();
 
         for (Node node : getChildren(FunctionNode.class)) {

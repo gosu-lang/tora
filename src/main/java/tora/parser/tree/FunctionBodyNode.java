@@ -7,9 +7,9 @@ public class FunctionBodyNode extends Node
 {
 
   private String _content;
-  public FunctionBodyNode( String content, Tokenizer.Token start, Tokenizer.Token end )
+  public FunctionBodyNode( String content )
   {
-    super( null, start, end );
+    super( null );
     _content = content;
   }
 
