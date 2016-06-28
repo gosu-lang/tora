@@ -108,10 +108,8 @@ public class JavascriptPlugin extends TypeLoaderBase
         return new JavascriptProgramType( this, name, iFile);
       }
     }
-    else
-    {
-      return null;
-    }
+
+    return null;
   }
 
   private JavascriptClassType maybeGetClassType( JavascriptPlugin javascriptPlugin, String name, IFile iFile )
