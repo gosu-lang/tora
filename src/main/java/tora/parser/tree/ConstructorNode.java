@@ -5,14 +5,31 @@ import tora.parser.Tokenizer;
 
 public class ConstructorNode extends Node
 {
-  public ConstructorNode( String name, Tokenizer.Token start, Tokenizer.Token end )
+  private String _args = "";
+
+  public ConstructorNode(String name )
   {
-    super( name, start, end );
+    super( name );
   }
+
+  public ConstructorNode( String name, String args, Tokenizer.Token start, Tokenizer.Token end)
+  {
+    super( name  );
+    _args = args;
+  }
+
 
   @Override
   public String genCode()
   {
-    return "function " + getName() + "{}";
+    String functionBodyCode;
+    try {
+      functionBodyCode = this.getChildren().get(0).genCode();
+    } catch (IndexOutOfBoundsException e) {
+      functionBodyCode = "{}";
+    }
+    return   "function " + _name + "(" + _args + ")" +
+            functionBodyCode.replaceFirst("[{]", "{ _classCallCheck(this," + _name +
+            ");" );
   }
 }

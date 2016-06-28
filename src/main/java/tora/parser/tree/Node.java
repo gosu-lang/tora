@@ -16,11 +16,9 @@ public abstract class Node
   Tokenizer.Token _end;
   List<Node> _children;
 
-  public Node( String name, Tokenizer.Token start, Tokenizer.Token end )
+  public Node( String name)
   {
     _name = name;
-    _start = start;
-    _end = end;
     _children = new ArrayList<>();
   }
 
@@ -47,6 +45,12 @@ public abstract class Node
   public String getName()
   {
     return _name;
+  }
+
+  public void setTokens( Tokenizer.Token start, Tokenizer.Token end )
+  {
+    _start = start;
+    _end = end;
   }
 
   public Tokenizer.Token getStart()
