@@ -25,10 +25,7 @@ public class ToraBootstrap
 {
   @BeforeClass
   public static void beforeClass() {
-    Gosu.init();
-    ITypeLoader javascriptPlugin = new JavascriptPlugin( TypeSystem.getCurrentModule()); // global vs. current?
-    TypeSystem.pushTypeLoader(TypeSystem.getGlobalModule(), javascriptPlugin);
-    javascriptPlugin.init();
+    Utils.maybeInit();
   }
 
   @Test

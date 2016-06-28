@@ -1,37 +1,26 @@
 package tora.plugin;
 
 import gw.fs.IFile;
-import gw.fs.IFileUtil;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.TypeBase;
 import gw.util.GosuExceptionUtil;
 import gw.util.StreamUtil;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 
-/**
- * Created by carson on 3/28/16.
- */
-public class JavascriptType extends TypeBase implements IType
+abstract public class JavascriptTypeBase extends TypeBase implements IType
 {
-  private final String _name;
-  private final JavascriptPlugin _typeloader;
-  private final String _relativeName;
-  private final String _package;
-  private final String _src;
-  private ITypeInfo _typeinfo;
+  private String _name;
+  private JavascriptPlugin _typeloader;
+  private String _relativeName;
+  private String _package;
+  private String _src;
   private IFile _file;
 
-  public JavascriptType( JavascriptPlugin typeloader, String name, IFile jsFile )
+  public JavascriptTypeBase( JavascriptPlugin typeloader, String name, IFile jsFile )
   {
-    _name = name;
-    _typeloader = typeloader;
-    _file = jsFile;
     if( _name.indexOf( '.' ) > 0 )
     {
       _relativeName = _name.substring( _name.lastIndexOf( '.' ) + 1 );
@@ -42,6 +31,19 @@ public class JavascriptType extends TypeBase implements IType
       _relativeName = _name;
       _package = "";
     }
+    if( _name.indexOf( '.' ) > 0 )
+    {
+      _relativeName = _name.substring( _name.lastIndexOf( '.' ) + 1 );
+      _package = _name.substring( 0, _name.lastIndexOf( '.' ) );
+    }
+    else
+    {
+      _relativeName = _name;
+      _package = "";
+    }
+    _name = name;
+    _typeloader = typeloader;
+    _file = jsFile;
     try
     {
       _src = StreamUtil.getContent( new InputStreamReader( jsFile.openInputStream() ) );
@@ -50,10 +52,11 @@ public class JavascriptType extends TypeBase implements IType
     {
       throw GosuExceptionUtil.forceThrow( e );
     }
-    _typeinfo = new JavascriptTypeInfo(this);
+
   }
 
-  public String getSource() {
+  public String getSource()
+  {
     return _src;
   }
 
@@ -94,14 +97,8 @@ public class JavascriptType extends TypeBase implements IType
   }
 
   @Override
-  public ITypeInfo getTypeInfo()
-  {
-    return _typeinfo;
-  }
-
-  @Override
   public IFile[] getSourceFiles()
   {
-    return new IFile[] {_file};
+    return new IFile[]{_file};
   }
 }

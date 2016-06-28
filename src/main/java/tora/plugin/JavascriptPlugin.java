@@ -9,10 +9,13 @@ import gw.lang.reflect.TypeLoaderBase;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.module.IModule;
 import gw.util.Pair;
+import gw.util.StreamUtil;
 import gw.util.concurrent.LockingLazyVar;
+import tora.parser.Parser;
+import tora.parser.Tokenizer;
 
-import java.io.File;
-import java.io.InputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -99,12 +102,34 @@ public class JavascriptPlugin extends TypeLoaderBase
     IFile iFile = _jsSources.get().get( name );
     if( iFile != null )
     {
-      return new JavascriptType(this, name, iFile);
+      JavascriptClassType javascriptClassType = maybeGetClassType( this, name, iFile );
+      if( javascriptClassType == null )
+      {
+        return new JavascriptProgramType( this, name, iFile);
+      }
     }
     else
     {
       return null;
     }
+  }
+
+  private JavascriptClassType maybeGetClassType( JavascriptPlugin javascriptPlugin, String name, IFile iFile )
+  {
+    try
+    {
+      Parser parser = new Parser( new Tokenizer( StreamUtil.getContent( new InputStreamReader( iFile.openInputStream() ) ) ) );
+      parser.parse();
+      if( parser.isES6Class() )
+      {
+        return new JavascriptClassType( javascriptPlugin, name, iFile, parser );
+      }
+    }
+    catch( IOException e )
+    {
+      // TODO - log?
+    }
+    return  null;
   }
 
   @Override
