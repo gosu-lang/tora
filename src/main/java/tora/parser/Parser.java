@@ -13,8 +13,8 @@ public class Parser
   //Constructor sets the src from which the parser reads
   public Parser(Tokenizer tokenizer){
       _tokenizer = tokenizer;
-      System.out.println(tokenizer);
   }
+
   public boolean isES6Class() {
     return _classNode != null;
   }
@@ -27,20 +27,22 @@ public class Parser
 
   private void parseClassStatement()
   {
-    if( match(TokenType.CLASS) != null )
+    if( match(TokenType.CLASS))
     {
       nextToken();
-      Tokenizer.Token className = match( TokenType.IDENTIFIER );
-      if( className != null )
+      if( match(TokenType.IDENTIFIER) )
       {
+        Tokenizer.Token className = _currentToken;
         nextToken();
         _classNode = new ClassNode( className.getValue() );
-        if( match( '{' ) != null )
+        if (match( '{' ))
         {
           nextToken();
           parseClassBody(className.getValue());
-          Tokenizer.Token end = match( '}' );
-          _classNode.setTokens( className, end );
+          if (match( '}' )) {
+            Tokenizer.Token end = _currentToken;
+            _classNode.setTokens(className, end);
+          }
         }
       }
     }
@@ -48,73 +50,88 @@ public class Parser
 
   private void parseClassBody(String className)
   {
-    while(match('}') == null) {
-      System.out.println(_currentToken.getValue());
-      // TODO
-      if (matchClassKeyword("constructor") != null) {
+    while(!match('}')) {
+      if (matchClassKeyword("constructor")) {
         _classNode.addChild(parseConstructor(className));
-      } else if (matchClassKeyword("get") != null || matchClassKeyword("set") != null) {
+      } else if (matchClassKeyword("get") || matchClassKeyword("set")) {
         _classNode.addChild(parseProperty());
-      } else if (matchClassKeyword("static") != null || match(TokenType.IDENTIFIER) != null) {
+      } else if (matchClassKeyword("static") || match(TokenType.IDENTIFIER)) {
         _classNode.addChild(parseFunction(className));
+      } else if (match(TokenType.COMMENT)) {
+        nextToken();
       }
-      // remember the static modifiers
-      // include bodies
     }
   }
 
   private ConstructorNode parseConstructor(String className) {
-    Tokenizer.Token start = _currentToken; //starting token is "constructor"
+    Tokenizer.Token start = _currentToken; //'constructor'
     nextToken();
-    String args = "";
-    FunctionBodyNode body = null;
-    if (match('(') != null) {
-      args = parseArgs();
-      body = parseFunctionBody();
+    if (match('(')) {
+      String args = parseArgs();
+      FunctionBodyNode body = parseFunctionBody();
+      if (match('}')) {
+        Tokenizer.Token end = _currentToken;
+        nextToken();
+        ConstructorNode node = new ConstructorNode(className, args, start, end);
+        node.addChild(body);
+        return node;
+      }
     }
-    Tokenizer.Token end = match('}');
-    nextToken();
-    ConstructorNode node = new ConstructorNode(className, args, start, end);
-    node.addChild(body);
-    return node;
+    return null;
   }
 
   private FunctionNode parseFunction(String className) {
     boolean isStatic = false;
-    String args = "";
-    FunctionBodyNode body = null;
-    Tokenizer.Token start = _currentToken;
-    if (matchClassKeyword("static") != null) {
+    Tokenizer.Token start = _currentToken; //Either name of function or 'static'
+    if (matchClassKeyword("static")) {
       isStatic = true;
       nextToken();
     }
-    Tokenizer.Token functionName = match(TokenType.IDENTIFIER);
+    Tokenizer.Token functionName = _currentToken;
     nextToken();
-    if (match('(') != null) {
-      args = parseArgs();
-      body = parseFunctionBody();
+    if (match('(')) {
+      String args = parseArgs();
+      FunctionBodyNode body = parseFunctionBody();
+      if (match('}')) {
+        Tokenizer.Token end = _currentToken;
+        nextToken();
+        FunctionNode node = new FunctionNode(functionName.getValue(), className, args, isStatic);
+        node.addChild(body);
+        return node;
+      }
     }
-    Tokenizer.Token end = match('}');
-    nextToken();
-    FunctionNode node = new FunctionNode(functionName.getValue(), className, args, isStatic);
-    node.addChild(body);
-    return node;
+    return null;
   }
 
   private PropertyNode parseProperty() {
-
+    Tokenizer.Token start = _currentToken; //'get' or 'set'
+    boolean isSetter = matchClassKeyword("set");
+    nextToken();
+    Tokenizer.Token functionName = _currentToken;
+    nextToken();
+    if (match('(')) {
+      String args = parseArgs();
+      FunctionBodyNode body = parseFunctionBody();
+      if (match('}')) {
+        Tokenizer.Token end = _currentToken;
+        nextToken();
+        PropertyNode node = new PropertyNode(functionName.getValue(), args, isSetter);
+        node.addChild(body);
+        return node;
+      }
+    }
     return null;
   }
 
   private String parseArgs() {
     nextToken(); // '('
     StringBuilder val = new StringBuilder();
-    while (match(')') == null) {
-      if (match(TokenType.IDENTIFIER) != null) {
+    while (!match(')')) {
+      if (match(TokenType.IDENTIFIER)) {
         concatToken(val);
         nextToken();
       }
-      if (match(',') != null) {
+      if (match(',')) {
         concatToken(val);
         nextToken();
       }
@@ -124,11 +141,11 @@ public class Parser
   }
   
   private void concatToken (StringBuilder val) {
-    if (match(TokenType.NUMBER) != null) {
+    if (match(TokenType.NUMBER)) {
       val.append(" ");
     }
     val.append(_currentToken.getValue());
-    if (match(TokenType.KEYWORD) != null) {
+    if (match(TokenType.KEYWORD)) {
       val.append(" ");
     }
   }
@@ -139,50 +156,37 @@ public class Parser
     int curlyCount = 1;
     while (curlyCount > 0) {
       nextToken();
-      if (match('}') != null) curlyCount--;
-      if (match('{') != null) curlyCount++;
+      if (match('}')) curlyCount--;
+      if (match('{')) curlyCount++;
       concatToken(val);
     }
     return new FunctionBodyNode(val.toString());
   }
 
-  private Tokenizer.Token match( char c )
+  private boolean match( char c )
   {
     return match(TokenType.PUNCTUATION, String.valueOf(c));
   }
 
-  private Tokenizer.Token matchKeyword(String val)
+  private boolean matchKeyword(String val)
   {
     return match(TokenType.KEYWORD, val);
   }
 
   /*Matches conditional keywords such as "constructor", which are only keywords within a class*/
-  private Tokenizer.Token matchClassKeyword(String val)
+  private boolean matchClassKeyword(String val)
   {
     return match(TokenType.IDENTIFIER, val);
   }
 
-  private Tokenizer.Token match(TokenType type, String val) {
-    if (_currentToken.getType() == type &&
-            _currentToken.getValue().equals(val)) {
-      Tokenizer.Token t = _currentToken;
-      return t;
-    } else {
-      return null;
-    }
+  private boolean match(TokenType type, String val) {
+    return (_currentToken.getType() == type &&
+            _currentToken.getValue().equals(val));
   }
 
-  private Tokenizer.Token match( TokenType type )
+  private boolean match( TokenType type )
   {
-    if( _currentToken.getType() == type )
-    {
-      Tokenizer.Token t = _currentToken;
-      return t;
-    }
-    else
-    {
-      return null;
-    }
+    return (_currentToken.getType() == type);
   }
 
   private void nextToken()

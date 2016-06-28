@@ -11,6 +11,10 @@ import org.junit.Test;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.net.URL;
 
 public class ParserTest {
     private static ScriptEngine engine;
@@ -21,7 +25,7 @@ public class ParserTest {
     }
 
 
-    String Edward = "shit";
+    String Edward = "fuck you stanford";
     @Test
     public void parseBasicTest() {
         String testString = "class DemoClass {\n  constructor() {\n    this.foo = 42;\n  }\n" +
@@ -32,23 +36,30 @@ public class ParserTest {
         Tokenizer tokenizer = new Tokenizer(testString);
         Parser parser = new Parser(tokenizer);
         parser.parse();
-        Assert.assertEquals(Edward, "shit");
+        Assert.assertEquals(Edward, "fuck you stanford");
     }
 
+    /*Runs code through tokenizer, parser, and codegen; uses Nashorn to verify results*/
     @Test
-    public void parseConstructor() throws ScriptException {
-        String testCode =
-                "class DemoClass { constructor(a, b, c) {this.foo = a + b + c}   " +
-                "static staticFoo() { return 42; } " +
-                "bar() { return this.foo; } " +
-                "}";
-        String genCode = new Parser(new Tokenizer(testCode)).parse().genCode();
+    public void endTest() throws ScriptException, FileNotFoundException {
+        URL url = getClass().getResource("/demoClass.js");
+        Tokenizer tokenizer = new Tokenizer(new BufferedReader(new FileReader(url.getFile())));
+        String genCode = new Parser(tokenizer).parse().genCode();
         System.out.println(genCode);
         engine.eval(genCode);
         engine.eval("var dem = new DemoClass(10,30,2);");
-        Assert.assertEquals(42.0, engine.eval("dem.foo"));
-        Assert.assertEquals(42.0, engine.eval("dem.bar()"));
+        //Test constructor
+        Assert.assertEquals(42, engine.eval("dem.foo"));
+        //Test function and static function
+        Assert.assertEquals(42, engine.eval("dem.bar()"));
         Assert.assertEquals(42, engine.eval("DemoClass.staticFoo()"));
+        //Test properties
+        Assert.assertEquals(42,engine.eval("dem.doh"));
+        engine.eval("dem.doh = 42");
+        Assert.assertEquals(21.0,engine.eval("dem.halfDoh"));
+        Assert.assertEquals(42,engine.eval("dem.poh"));
+        engine.eval("dem.poh = 42");
+        Assert.assertEquals(84l,engine.eval("dem.doublePoh"));
     }
 
 }
