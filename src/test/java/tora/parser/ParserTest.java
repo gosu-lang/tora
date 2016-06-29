@@ -25,7 +25,6 @@ public class ParserTest {
     }
 
 
-    String Edward = "fuck you stanford";
     @Test
     public void parseBasicTest() {
         String testString = "class DemoClass {\n  constructor() {\n    this.foo = 42;\n  }\n" +
@@ -36,13 +35,12 @@ public class ParserTest {
         Tokenizer tokenizer = new Tokenizer(testString);
         Parser parser = new Parser(tokenizer);
         parser.parse();
-        Assert.assertEquals(Edward, "fuck you stanford");
     }
 
     /*Runs code through tokenizer, parser, and codegen; uses Nashorn to verify results*/
     @Test
     public void endTest() throws ScriptException, FileNotFoundException {
-        URL url = getClass().getResource("/demoClass.js");
+        URL url = getClass().getResource("/DemoClass.js");
         Tokenizer tokenizer = new Tokenizer(new BufferedReader(new FileReader(url.getFile())));
         String genCode = new Parser(tokenizer).parse().genCode();
         System.out.println(genCode);
