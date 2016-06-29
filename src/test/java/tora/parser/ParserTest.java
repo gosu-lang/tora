@@ -42,7 +42,7 @@ public class ParserTest {
     /*Runs code through tokenizer, parser, and codegen; uses Nashorn to verify results*/
     @Test
     public void endTest() throws ScriptException, FileNotFoundException {
-        URL url = getClass().getResource("/DemoClass.js");
+        URL url = getClass().getResource("/demoClass.js");
         Tokenizer tokenizer = new Tokenizer(new BufferedReader(new FileReader(url.getFile())));
         String genCode = new Parser(tokenizer).parse().genCode();
         System.out.println(genCode);

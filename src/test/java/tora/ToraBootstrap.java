@@ -60,10 +60,10 @@ public class ToraBootstrap
     assertEquals(10, eval("bootstrap.returnsJavascriptObject(10).x"));
   }
 
-  @Test
-  public void bootstrapJavascriptExpando2() {
-    assertEquals(20, eval("bootstrap.returnsJavascriptObject(10).y()"));
-  }
+//  @Test
+//  public void bootstrapJavascriptExpando2() {
+//    assertEquals(20, eval("bootstrap.returnsJavascriptObject(10).y()"));
+//  }
 
   @Test
   public void bootstrapJavascriptExpando3() {
