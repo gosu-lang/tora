@@ -106,6 +106,8 @@ public class JavascriptPlugin extends TypeLoaderBase
       if( javascriptClassType == null )
       {
         return new JavascriptProgramType( this, name, iFile);
+      } else {
+        return javascriptClassType;
       }
     }
 

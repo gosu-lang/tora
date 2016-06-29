@@ -8,6 +8,7 @@ import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.TypeSystem;
 import gw.util.GosuExceptionUtil;
 import gw.util.SystemOutLogger;
+import jdk.nashorn.api.scripting.JSObject;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,7 +25,7 @@ import java.util.HashMap;
 public class CodeGenTest
 {
   private static ScriptEngine engine;
-
+  String Edward = "bitch";
   @BeforeClass
   public static void beforeClass() {
     engine = new ScriptEngineManager().getEngineByName("nashorn");
@@ -167,6 +168,8 @@ public class CodeGenTest
   public void testClassNodeMembers() throws ScriptException, NoSuchMethodException {
     System.out.println(makeSampleTree().genCode());
     engine.eval(makeSampleTree().genCode());
+
+
     Assert.assertEquals(42,engine.eval("DemoClass.staticFoo()"));
     engine.eval("var dem = new DemoClass()");
     Assert.assertEquals(42,engine.eval("dem.bar()"));

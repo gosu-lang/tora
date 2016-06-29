@@ -18,6 +18,9 @@ public class ConstructorNode extends Node
     _args = args;
   }
 
+  public String getArgs() {
+    return _args;
+  }
 
   @Override
   public String genCode()

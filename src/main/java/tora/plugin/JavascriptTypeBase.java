@@ -21,29 +21,29 @@ abstract public class JavascriptTypeBase extends TypeBase implements IType
 
   public JavascriptTypeBase( JavascriptPlugin typeloader, String name, IFile jsFile )
   {
-    if( _name.indexOf( '.' ) > 0 )
-    {
-      _relativeName = _name.substring( _name.lastIndexOf( '.' ) + 1 );
-      _package = _name.substring( 0, _name.lastIndexOf( '.' ) );
-    }
-    else
-    {
-      _relativeName = _name;
-      _package = "";
-    }
-    if( _name.indexOf( '.' ) > 0 )
-    {
-      _relativeName = _name.substring( _name.lastIndexOf( '.' ) + 1 );
-      _package = _name.substring( 0, _name.lastIndexOf( '.' ) );
-    }
-    else
-    {
-      _relativeName = _name;
-      _package = "";
-    }
     _name = name;
     _typeloader = typeloader;
     _file = jsFile;
+    if( _name.indexOf( '.' ) > 0 )
+    {
+      _relativeName = _name.substring( _name.lastIndexOf( '.' ) + 1 );
+      _package = _name.substring( 0, _name.lastIndexOf( '.' ) );
+    }
+    else
+    {
+      _relativeName = _name;
+      _package = "";
+    }
+    if( _name.indexOf( '.' ) > 0 )
+    {
+      _relativeName = _name.substring( _name.lastIndexOf( '.' ) + 1 );
+      _package = _name.substring( 0, _name.lastIndexOf( '.' ) );
+    }
+    else
+    {
+      _relativeName = _name;
+      _package = "";
+    }
     try
     {
       _src = StreamUtil.getContent( new InputStreamReader( jsFile.openInputStream() ) );

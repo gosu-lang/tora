@@ -58,7 +58,7 @@ public class Parser
       } else if (matchClassKeyword("static") || match(TokenType.IDENTIFIER)) {
         _classNode.addChild(parseFunction(className));
       } else if (match(TokenType.COMMENT)) {
-        nextToken();
+        nextToken(); //ignore comments for now
       }
     }
   }
@@ -96,6 +96,7 @@ public class Parser
         Tokenizer.Token end = _currentToken;
         nextToken();
         FunctionNode node = new FunctionNode(functionName.getValue(), className, args, isStatic);
+        node.setTokens(start, end);
         node.addChild(body);
         return node;
       }
@@ -116,6 +117,7 @@ public class Parser
         Tokenizer.Token end = _currentToken;
         nextToken();
         PropertyNode node = new PropertyNode(functionName.getValue(), args, isSetter);
+        node.setTokens(start, end);
         node.addChild(body);
         return node;
       }

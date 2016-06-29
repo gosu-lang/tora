@@ -42,7 +42,7 @@ public class ParserTest {
     /*Runs code through tokenizer, parser, and codegen; uses Nashorn to verify results*/
     @Test
     public void endTest() throws ScriptException, FileNotFoundException {
-        URL url = getClass().getResource("/demoClass.js");
+        URL url = getClass().getResource("/DemoClass.js");
         Tokenizer tokenizer = new Tokenizer(new BufferedReader(new FileReader(url.getFile())));
         String genCode = new Parser(tokenizer).parse().genCode();
         System.out.println(genCode);
@@ -52,14 +52,13 @@ public class ParserTest {
         Assert.assertEquals(42, engine.eval("dem.foo"));
         //Test function and static function
         Assert.assertEquals(42, engine.eval("dem.bar()"));
+        Assert.assertEquals(42l, engine.eval("dem.sum(22,20)"));
         Assert.assertEquals(42, engine.eval("DemoClass.staticFoo()"));
         //Test properties
-        Assert.assertEquals(42,engine.eval("dem.doh"));
-        engine.eval("dem.doh = 42");
-        Assert.assertEquals(21.0,engine.eval("dem.halfDoh"));
-        Assert.assertEquals(42,engine.eval("dem.poh"));
-        engine.eval("dem.poh = 42");
-        Assert.assertEquals(84l,engine.eval("dem.doublePoh"));
+        Assert.assertEquals(21,engine.eval("dem.doh"));
+        engine.eval("dem.doh = 80");
+        Assert.assertEquals(80,engine.eval("dem.doh"));
+        Assert.assertEquals(84,engine.eval("dem.poh"));
     }
 
 }

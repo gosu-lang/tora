@@ -7,8 +7,8 @@ public class FunctionNode extends Node
 {
 
   private String _args = "";
-  String _className;
-  Boolean _isStatic = false;
+  private String _className;
+  private Boolean _isStatic = false;
 
   public FunctionNode( String name )
   {
@@ -30,6 +30,14 @@ public class FunctionNode extends Node
     _className = className;
     _isStatic = isStatic;
     _args = args;
+  }
+
+  public boolean isStatic() {
+    return _isStatic;
+  }
+
+  public String getArgs() {
+    return _args;
   }
 
 
