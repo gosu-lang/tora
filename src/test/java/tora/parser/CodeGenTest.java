@@ -166,10 +166,7 @@ public class CodeGenTest
 
   @Test
   public void testClassNodeMembers() throws ScriptException, NoSuchMethodException {
-    System.out.println(makeSampleTree().genCode());
     engine.eval(makeSampleTree().genCode());
-
-
     Assert.assertEquals(42,engine.eval("DemoClass.staticFoo()"));
     engine.eval("var dem = new DemoClass()");
     Assert.assertEquals(42,engine.eval("dem.bar()"));

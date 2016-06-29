@@ -5,6 +5,7 @@ import gw.lang.reflect.*;
 import gw.util.GosuExceptionUtil;
 import tora.parser.Parser;
 import tora.parser.tree.ClassNode;
+import tora.parser.tree.ConstructorNode;
 import tora.parser.tree.FunctionNode;
 import tora.parser.tree.PropertyNode;
 
@@ -44,10 +45,18 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
 
   private void addConstructor(ClassNode classNode) {
     _constructor = new ConstructorInfoBuilder()
-            .withParameters()
+            .withParameters(makeParamList(classNode.getChildren(ConstructorNode.class).get(0).getArgs()))
             .withConstructorHandler((args) -> {
               try {
-                return _engine.eval("new " + classNode.getName() + "()");
+                StringBuffer buff = new StringBuffer();
+                for(int i  = 0 ; i < args.length ; i++) {
+                  buff.append(args[i]);
+                  if(i != args.length - 1) {
+                    buff.append(",");
+                  }
+
+                }
+                return _engine.eval("new " + classNode.getName() + "("+ buff.toString()+ ")");
               } catch (ScriptException e) {
                 throw GosuExceptionUtil.forceThrow( e );
               }

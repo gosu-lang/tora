@@ -21,11 +21,21 @@ public class JavascriptPluginTest
     Utils.maybeInit();
   }
 
+
   @Test
   public void method() {
     assertEquals(42,eval("var dem = new DemoClass(); return dem.bar()"));
   }
+  @Test
+  public void constructorArgsTest() {
+    assertEquals(5,eval("var dem = new DemoClass(5); return dem.cons"));
+  }
 
+  @Test
+  public void propertyInMethodTest() {
+    assertEquals(105.0,eval("var dem = new DemoClass(5);  return dem.fcal()"));
+    assertEquals(20.0,eval("var dem = new DemoClass(5); dem.poh = 10; dem.doh = 10; return dem.fcal()"));
+  }
   @Test
   public void methodWithArgs() {
     assertEquals(42.0,eval("var dem = new DemoClass(); return dem.sum(20,22)"));
@@ -38,15 +48,6 @@ public class JavascriptPluginTest
   @Test
   public void propertyGet() {
     assertEquals(80,eval("var dem = new DemoClass(); dem.poh = 80; return dem.poh"));
-    //assertEquals(42,eval("class Hello {\n" +
-    //        "  property get fine() : Integer { \n" +
-    //        "   return 42\n" +
-    //        "  }\n" +
-    //        "}\n" +
-    //        "\n" +
-    //        "var dem : Dynamic = new Hello()\n" +
-    //        "\n" +
-    //        "return dem.fine"));
   }
 
   private Object eval( String program )

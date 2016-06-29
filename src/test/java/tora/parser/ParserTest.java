@@ -43,7 +43,6 @@ public class ParserTest {
         URL url = getClass().getResource("/DemoClass.js");
         Tokenizer tokenizer = new Tokenizer(new BufferedReader(new FileReader(url.getFile())));
         String genCode = new Parser(tokenizer).parse().genCode();
-        System.out.println(genCode);
         engine.eval(genCode);
         engine.eval("var dem = new DemoClass(10,30,2);");
         //Test constructor
