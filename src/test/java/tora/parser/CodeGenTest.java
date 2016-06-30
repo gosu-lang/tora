@@ -25,7 +25,6 @@ import java.util.HashMap;
 public class CodeGenTest
 {
   private static ScriptEngine engine;
-  String Edward = "bitch";
   @BeforeClass
   public static void beforeClass() {
     engine = new ScriptEngineManager().getEngineByName("nashorn");

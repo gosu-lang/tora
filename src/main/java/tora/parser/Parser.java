@@ -60,6 +60,8 @@ public class Parser
           _classNode.addChild(parseStaticProperty(staticToken));
         } else if (match(TokenType.IDENTIFIER)) {
           _classNode.addChild(parseStaticFunction(className, staticToken));
+        } else {
+          //TODO: add error
         }
       } else if (matchClassKeyword("get") || matchClassKeyword("set")) {
         _classNode.addChild(parseProperty());
@@ -67,6 +69,8 @@ public class Parser
         _classNode.addChild(parseFunction(className));
       } else if (match(TokenType.COMMENT)) {
         nextToken(); //ignore comments for now
+      } else {
+        //TODO: add error
       }
     }
   }
@@ -144,17 +148,21 @@ public class Parser
   }
 
   private String parseArgs() {
-    nextToken(); // '('
+    nextToken(); // skip over the '('
     StringBuilder val = new StringBuilder();
+    Matcher matcher = () -> match(')') || match(TokenType.IDENTIFIER);
+    assert matcher.match();
     while (!match(')')) {
       if (match(TokenType.IDENTIFIER)) {
         concatToken(val);
         nextToken();
-      }
-      if (match(',')) {
+        matcher = () -> match(',') || match(')'); //ending paren or comma can follow identifier
+      } else if (match(',')) {
         concatToken(val);
         nextToken();
+        matcher = () -> match(TokenType.IDENTIFIER); //identifier must follow commas
       }
+      assert matcher.match();
     }
     nextToken();
     return val.toString();
@@ -181,6 +189,15 @@ public class Parser
       concatToken(val);
     }
     return new FunctionBodyNode(val.toString());
+  }
+
+  //========================================================================================
+  // Utilities
+  //========================================================================================
+
+  //Used to create lambda functions for matching tokens
+  private interface Matcher {
+    boolean match();
   }
 
   private boolean match( char c )

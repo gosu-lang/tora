@@ -35,4 +35,11 @@ public class ConstructorNode extends Node
             functionBodyCode.replaceFirst("[{]", "{ _classCallCheck(this," + _name +
             ");" );
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof ConstructorNode)) return false;
+    ConstructorNode node = (ConstructorNode) obj;
+    return _name.equals(node.getName());
+  }
 }

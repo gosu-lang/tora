@@ -26,8 +26,19 @@ public class PropertyNode extends Node
     _args = args;
   }
 
+  public PropertyNode(String name, String args, boolean isSetter, boolean isStatic) {
+    super(name);
+    _isSetter = isSetter;
+    _args = args;
+    _isStatic = isStatic;
+  }
+
   public boolean isStatic() {
     return _isStatic;
+  }
+
+  public boolean isSetter() {
+    return _isSetter;
   }
 
   public void setStatic(boolean isStatic) {
@@ -49,7 +60,11 @@ public class PropertyNode extends Node
             functionBodyCode; //Should have one FunctionBodyNode child
   }
 
-  public boolean isSetter() {
-    return _isSetter;
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof PropertyNode)) return false;
+    PropertyNode node = (PropertyNode) obj;
+    return _name.equals(node.getName()) && _isStatic == node.isStatic() && _isSetter == node.isSetter() ;
   }
+
 }

@@ -63,4 +63,12 @@ public class FunctionNode extends Node
     return  _className + (_isStatic?".":".prototype.") + //If static, can be method of class directly
             getName() + " = " + "function" + "(" + _args + ")" + functionBodyCode;
   }
+
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof FunctionNode)) return false;
+    FunctionNode node = (FunctionNode) obj;
+    return _name.equals(node.getName()) && _isStatic == ((FunctionNode) obj).isStatic();
+  }
 }
