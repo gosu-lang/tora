@@ -53,9 +53,17 @@ public class Parser
     while(!match('}')) {
       if (matchClassKeyword("constructor")) {
         _classNode.addChild(parseConstructor(className));
+      } else if (matchClassKeyword("static")) { //properties and functions can both be static
+        Tokenizer.Token staticToken = _currentToken;
+        nextToken();
+        if (matchClassKeyword("get") || matchClassKeyword("set")) {
+          _classNode.addChild(parseStaticProperty(staticToken));
+        } else if (match(TokenType.IDENTIFIER)) {
+          _classNode.addChild(parseStaticFunction(className, staticToken));
+        }
       } else if (matchClassKeyword("get") || matchClassKeyword("set")) {
         _classNode.addChild(parseProperty());
-      } else if (matchClassKeyword("static") || match(TokenType.IDENTIFIER)) {
+      } else if (match(TokenType.IDENTIFIER)) {
         _classNode.addChild(parseFunction(className));
       } else if (match(TokenType.COMMENT)) {
         nextToken(); //ignore comments for now
@@ -80,14 +88,16 @@ public class Parser
     return null;
   }
 
+  private FunctionNode parseStaticFunction(String className, Tokenizer.Token staticToken) {
+    FunctionNode functionNode = parseFunction(className);
+    functionNode.setTokens(staticToken, functionNode.getEnd());
+    functionNode.setStatic(true);
+    return functionNode;
+  }
+
   private FunctionNode parseFunction(String className) {
-    boolean isStatic = false;
-    Tokenizer.Token start = _currentToken; //Either name of function or 'static'
-    if (matchClassKeyword("static")) {
-      isStatic = true;
-      nextToken();
-    }
-    Tokenizer.Token functionName = _currentToken;
+    Tokenizer.Token start = _currentToken; //Name of function
+    String functionName = start.getValue();
     nextToken();
     if (match('(')) {
       String args = parseArgs();
@@ -95,7 +105,7 @@ public class Parser
       if (match('}')) {
         Tokenizer.Token end = _currentToken;
         nextToken();
-        FunctionNode node = new FunctionNode(functionName.getValue(), className, args, isStatic);
+        FunctionNode node = new FunctionNode(functionName, className, args);
         node.setTokens(start, end);
         node.addChild(body);
         return node;
@@ -103,6 +113,14 @@ public class Parser
     }
     return null;
   }
+
+  private PropertyNode parseStaticProperty(Tokenizer.Token staticToken) {
+    PropertyNode propertyNode = parseProperty();
+    propertyNode.setTokens(staticToken, propertyNode.getEnd());
+    propertyNode.setStatic(true);
+    return propertyNode;
+  }
+
 
   private PropertyNode parseProperty() {
     Tokenizer.Token start = _currentToken; //'get' or 'set'

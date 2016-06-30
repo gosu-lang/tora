@@ -46,8 +46,13 @@ public class JavascriptPluginTest
   }
 
   @Test
-  public void propertyGet() {
+  public void propertySetAndGet() {
     assertEquals(80,eval("var dem = new DemoClass(); dem.poh = 80; return dem.poh"));
+  }
+
+  @Test
+  public void staticPropertySetAndGet() {
+    assertEquals(40,eval("var dem = new DemoClass(); DemoClass.staticPoh = 40; return DemoClass.staticPoh"));
   }
 
   private Object eval( String program )

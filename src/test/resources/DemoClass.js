@@ -46,6 +46,15 @@ class DemoClass {
   }
 
 
+  static set staticPoh(d) {
+    this._poh = d;
+  }
+
+  static get staticPoh() {
+    return this._poh;
+  }
+
+
   // static function definition
   static staticFoo() {
     return 42;

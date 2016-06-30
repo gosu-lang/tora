@@ -15,7 +15,7 @@ public class FunctionNode extends Node
     super( name );
   }
 
-  //Test constructor
+  //Test constructors
   public FunctionNode( String name, String className, boolean isStatic )
   {
     super( name );
@@ -23,7 +23,13 @@ public class FunctionNode extends Node
     _isStatic = isStatic;
   }
 
-  //Test constructor
+  public FunctionNode( String name, String className, String args)
+  {
+    super( name );
+    _className = className;
+    _args = args;
+  }
+
   public FunctionNode( String name, String className, String args, boolean isStatic )
   {
     super( name );
@@ -36,10 +42,13 @@ public class FunctionNode extends Node
     return _isStatic;
   }
 
+  public void setStatic(boolean isStatic) {
+    _isStatic = isStatic;
+  }
+
   public String getArgs() {
     return _args;
   }
-
 
   @Override
   public String genCode()

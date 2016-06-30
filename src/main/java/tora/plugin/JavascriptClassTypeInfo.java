@@ -69,16 +69,19 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
     for (PropertyNode node : classNode.getChildren(PropertyNode.class)) {
       IPropertyInfo prop = new PropertyInfoBuilder()
               .withName(node.getName())
+              .withStatic(node.isStatic())
               .withType(TypeSystem.getByFullName("dynamic.Dynamic"))
               .withAccessor(new IPropertyAccessor() {
-                /*getProperty will normally pass over accessor and call Bindings directly*/
+                /*getProperty will accessor for static props only*/
+                Object classObject = _engine.get(classNode.getName());
+                //Use the classObject as the context for static properties
                 @Override
                 public Object getValue(Object o) {
-                  return ((Bindings) o).get(node.getName());
+                  return ((Bindings) classObject).get(node.getName());
                 }
                 @Override
                 public void setValue(Object ctx, Object value) {
-                  ((Bindings) ctx).put(node.getName(), value);
+                  ((Bindings) classObject).put(node.getName(), value);
                 }
               })
               .build(this);

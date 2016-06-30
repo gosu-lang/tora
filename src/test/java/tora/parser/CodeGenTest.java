@@ -65,6 +65,48 @@ public class CodeGenTest
   }
 
   @Test
+  public void testPropertiesInClass() {
+    //Make a class with a getter and setter of the same name
+    ClassNode demoClass = new ClassNode("DemoClass");
+    PropertyNode dohGet = new PropertyNode("doh", false);
+    PropertyNode dohSet = new PropertyNode("doh", "d", true);
+    demoClass.addChild(dohGet);
+    demoClass.addChild(dohSet);
+    dohGet.addChild(new FunctionBodyNode("{return this._doh;}"));
+    dohSet.addChild(new FunctionBodyNode("{this._doh = d;}"));
+    Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
+            "var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n" +
+            "var DemoClass = function() { \n" +
+            "\tfunction DemoClass(){ _classCallCheck(this,DemoClass);}\n" +
+            "\t_createClass(DemoClass, [\n" +
+            "\t\t{key: \"doh\",set: function set(d){this._doh = d;},get: function get(){return this._doh;}}],null);\n" +
+            "\treturn DemoClass;\n" +
+            "}();", demoClass.genCode());
+  }
+
+  @Test
+public void testStaticPropertiesInClass() {
+  //Make a class with a getter and setter of the same name
+  ClassNode demoClass = new ClassNode("DemoClass");
+  PropertyNode dohGet = new PropertyNode("doh", false);
+  dohGet.setStatic(true);
+  PropertyNode dohSet = new PropertyNode("doh", "d", true);
+  dohSet.setStatic(true);
+  demoClass.addChild(dohGet);
+  demoClass.addChild(dohSet);
+  dohGet.addChild(new FunctionBodyNode("{return this._doh;}"));
+  dohSet.addChild(new FunctionBodyNode("{this._doh = d;}"));
+  Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
+          "var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n" +
+          "var DemoClass = function() { \n" +
+          "\tfunction DemoClass(){ _classCallCheck(this,DemoClass);}\n" +
+          "\t_createClass(DemoClass, null,[\n" +
+          "\t\t{key: \"doh\",set: function set(d){this._doh = d;},get: function get(){return this._doh;}}]);\n" +
+          "\treturn DemoClass;\n" +
+          "}();", demoClass.genCode());
+}
+
+  @Test
   public void testClassConstruction() {
     ClassNode demoClass = new ClassNode("DemoClass");
     ConstructorNode demoConstructor = new ConstructorNode("DemoClass");
@@ -77,6 +119,7 @@ public class CodeGenTest
             "\treturn DemoClass;\n" +
             "}();", demoClass.genCode());
   }
+
 
   @Test
   public void testFunctionConstruction() {
@@ -93,8 +136,7 @@ public class CodeGenTest
             "\tfunction DemoClass(){ _classCallCheck(this,DemoClass);}\n" +
             "\tDemoClass.prototype.bar = function(){return this.foo;}\n" +
             "\t_createClass(DemoClass, [\n" +
-            "\t\t{key: \"doh\",get: function get(){return this.foo;}}\n" +
-            "\t]);\n" +
+            "\t\t{key: \"doh\",get: function get(){return this.foo;}}],null);\n" +
             "\treturn DemoClass;\n" +
             "}();", demoClass.genCode());
 

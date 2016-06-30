@@ -57,12 +57,14 @@ public class ClassNode extends Node {
         //Wrapper to hold getters and setters for the same property
         class PropertyNodeWrapper {
             private String _name;
+            private boolean _isStatic;
             private PropertyNode _getter = null;
             private PropertyNode _setter = null;
 
             public PropertyNodeWrapper(String name) {
                 _name = name;
             }
+
             public void add(PropertyNode node) {
                 if (node.isSetter()) _setter = node;
                 else _getter = node;
@@ -79,22 +81,36 @@ public class ClassNode extends Node {
         String propCode = "";
         //combines getters and setters for each property
         if (!propertyNodes.isEmpty()) {
+            //Separate static and non-static properties
             HashMap<String, PropertyNodeWrapper> propertyNodeBucket = new HashMap();
-            propCode += "\n\t_createClass(" + getName() + ", [";
+            HashMap<String, PropertyNodeWrapper> staticPropertyNodeBucket = new HashMap();
+            propCode += "\n\t_createClass(" + getName() + ", ";
             for (PropertyNode node : propertyNodes) {
-                PropertyNodeWrapper wrapper = propertyNodeBucket.get(node.getName());
-                if (wrapper == null) {
-                    wrapper = new PropertyNodeWrapper(node.getName());
+                //Get wrapper by property name, and insert name
+                PropertyNodeWrapper wrapper;
+                if (node.isStatic()) {
+                    wrapper = staticPropertyNodeBucket.get(node.getName());
+                    if (wrapper == null) wrapper = new PropertyNodeWrapper(node.getName());
+                    staticPropertyNodeBucket.put(node.getName(), wrapper);
+                }
+                else  {
+                    wrapper = propertyNodeBucket.get(node.getName());
+                    if (wrapper == null) wrapper = new PropertyNodeWrapper(node.getName());
                     propertyNodeBucket.put(node.getName(), wrapper);
                 }
                 wrapper.add(node);
             }
 
-            propCode += String.join(",", propertyNodeBucket.values().stream()
-                    .map(prop->prop.genCode())
-                    .collect(Collectors.toList()));
-
-            propCode += "\n\t]);";
+            //Combine the properties into an array
+            String nonStaticProps = (propertyNodeBucket.isEmpty()) ? "null" :
+                    "[" + String.join(",", propertyNodeBucket.values().stream()
+                        .map(prop->prop.genCode())
+                        .collect(Collectors.toList())) + "]";
+            String staticProps = (staticPropertyNodeBucket.isEmpty()) ? "null" :
+                    "[" + String.join(",", staticPropertyNodeBucket.values().stream()
+                            .map(prop->prop.genCode())
+                            .collect(Collectors.toList())) + "]";
+            propCode += nonStaticProps + "," + staticProps + ");";
         }
         return  propCode;
     }
