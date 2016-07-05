@@ -1,5 +1,6 @@
 package tora.parser;
 
+import com.sun.tools.javac.util.List;
 import tora.parser.tree.*;
 
 public class Parser
@@ -7,7 +8,9 @@ public class Parser
   String _src;
   private ClassNode _classNode;
   private Tokenizer _tokenizer;
-  private Tokenizer.Token _currentToken;
+  private Tokenizer.Token _currentToken, _nextToken;
+
+  private List<String> _errorList;
 
   //Constructor sets the src from which the parser reads
   public Parser(Tokenizer tokenizer){
@@ -59,8 +62,6 @@ public class Parser
           _classNode.addChild(parseStaticProperty(className, staticToken));
         } else if (match(TokenType.IDENTIFIER)) {
           _classNode.addChild(parseStaticFunction(className, staticToken));
-        } else {
-          //TODO: add error
         }
       } else if (matchClassKeyword("get") || matchClassKeyword("set")) {
         _classNode.addChild(parseProperty(className));
@@ -70,6 +71,7 @@ public class Parser
         nextToken(); //ignore comments for now
       } else {
         //TODO: add error
+        nextToken();
       }
     }
   }
@@ -151,31 +153,20 @@ public class Parser
     nextToken(); // skip over the '('
     StringBuilder val = new StringBuilder();
     Matcher matcher = () -> match(')') || match(TokenType.IDENTIFIER);
-    assert matcher.match();
+    expect(matcher);
     while (!match(')')) {
       if (match(TokenType.IDENTIFIER)) {
-        concatToken(val);
-        nextToken();
         matcher = () -> match(',') || match(')'); //ending paren or comma can follow identifier
-      } else if (match(',')) {
         concatToken(val);
-        nextToken();
+      } else if (match(',')) {
         matcher = () -> match(TokenType.IDENTIFIER); //identifier must follow commas
+        concatToken(val);
       }
-      assert matcher.match();
+      nextToken();
+      expect(matcher);
     }
-    nextToken();
+    nextToken(); //skip over the ')'
     return val.toString();
-  }
-  
-  private void concatToken (StringBuilder val) {
-    if (match(TokenType.NUMBER)) {
-      val.append(" ");
-    }
-    val.append(_currentToken.getValue());
-    if (match(TokenType.KEYWORD)) {
-      val.append(" ");
-    }
   }
 
   private FunctionBodyNode parseFunctionBody() {
@@ -200,6 +191,24 @@ public class Parser
     boolean match();
   }
 
+  private void concatToken (StringBuilder val) {
+    if (match(TokenType.NUMBER)) {
+      val.append(" ");
+    }
+    val.append(_currentToken.getValue());
+    if (match(TokenType.KEYWORD)) {
+      val.append(" ");
+    }
+  }
+
+  private void expect(Matcher matcher) {
+    if (!matcher.match()) error("Unexpected Token: " + _currentToken.toString());
+  }
+
+  private void error(String errorMsg) {
+    _classNode.addError(new Error(errorMsg));
+  }
+
   private boolean match( char c )
   {
     return match(TokenType.PUNCTUATION, String.valueOf(c));
@@ -213,7 +222,11 @@ public class Parser
   /*Matches conditional keywords such as "constructor", which are only keywords within a class*/
   private boolean matchClassKeyword(String val)
   {
-    return match(TokenType.IDENTIFIER, val);
+    if (!match(TokenType.IDENTIFIER, val)) return false;
+    //If these class keywords aren't followed by an identifier, treat them as regular identifiers
+    if ((val.equals("static") || val.equals("get") || val.equals("set")) &&
+            peekToken().getType() != TokenType.IDENTIFIER) return false;
+    return  true;
   }
 
   private boolean match(TokenType type, String val) {
@@ -226,8 +239,15 @@ public class Parser
     return (_currentToken.getType() == type);
   }
 
+  private Tokenizer.Token peekToken() {
+    return _nextToken;
+  }
+
+  //Keep track of next token as well for context-sensitive class keywords
   private void nextToken()
   {
-    _currentToken = _tokenizer.next();
+    if (_nextToken == null) _nextToken = _tokenizer.next(); //For the first token
+    _currentToken = _nextToken;
+    if (_nextToken.getType() != TokenType.EOF)_nextToken = _tokenizer.next();
   }
 }

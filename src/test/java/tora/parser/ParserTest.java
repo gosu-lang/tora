@@ -20,6 +20,7 @@ import java.util.List;
 
 import static com.sun.tools.javac.util.Assert.error;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 public class ParserTest {
     private static ScriptEngine engine;
@@ -47,6 +48,7 @@ public class ParserTest {
         ClassNode tree = parse("class DemoClass{}");
         assertEquals(tree.getName(), "DemoClass");
     }
+
 
     @Test
     public void parseSimpleConstructor() {
@@ -84,12 +86,29 @@ public class ParserTest {
         );
     }
 
-    //@Test
-    //public void parseArgsError() {
-    //    ClassNode tree = parse("class DemoClass { bar(a,){} }");
-    //    tree = parse("class DemoClass { bar(,){} }");
-    //    tree = parse("class DemoClass { bar(a b){} }");
-    //}
+    @Test
+    public void parseContextualClassKeywords() {
+        //Function nodes that have the names of class keywords
+        ClassNode tree = parse("class DemoClass{ " +
+                "static(){} " +
+                "get(){} " +
+                "set(){} " +
+                "static static(){}" +
+                "}");
+        assertHasChildren(tree,
+                new FunctionNode("static", "DemoClass", "", false),
+                new FunctionNode("get", "DemoClass", "", false),
+                new FunctionNode("set", "DemoClass", "", false),
+                new FunctionNode("static", "DemoClass", "", true)
+        );
+    }
+
+    @Test
+    public void parseArgsError() {
+        assertHasError(parse("class DemoClass { bar(a,){} }"));
+        assertHasError(parse("class DemoClass { bar(,){} }"));
+        assertHasError(parse("class DemoClass { bar(a b){} }"));
+    }
 
     /*Runs code through tokenizer, parser, and codegen; uses Nashorn to verify results*/
     @Test
@@ -126,6 +145,9 @@ public class ParserTest {
         return new Parser(new Tokenizer(code)).parse();
     }
 
+    private void assertHasError(ClassNode tree) {
+        assertNotEquals(tree.errorCount(), 0);
+    }
 
     private void assertHasChildren(ClassNode parent, Node... expectedChildren) {
         List<Node> children = parent.getChildren();
@@ -133,6 +155,7 @@ public class ParserTest {
         for (int i = 0; i < children.size(); i++) {
             assertEquals(children.get(i), expectedChildren[i]);
         }
+        assertEquals(parent.errorCount(), 0);
     }
 }
 

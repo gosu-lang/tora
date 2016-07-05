@@ -5,10 +5,12 @@ import tora.parser.Tokenizer;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ClassNode extends Node {
+    /*Code segments taken from babel.js*/
     private static final String CREATE_CLASS = "var _createClass = function () { " +
         "function defineProperties(target, props) { for (var i = 0; i < props.length; i++) " +
         "{ var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; " +
@@ -24,6 +26,17 @@ public class ClassNode extends Node {
 
     public ClassNode(String name ) {
         super(name);
+        _errorList = new LinkedList<>();
+    }
+
+    private List<Error> _errorList;
+
+    public void addError(Error error) {
+        _errorList.add(error);
+    }
+
+    public int errorCount() {
+        return _errorList.size();
     }
 
     @Override
