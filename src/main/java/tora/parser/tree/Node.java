@@ -65,4 +65,11 @@ public abstract class Node
 
   /* Generates ES5 code */
   public abstract String genCode();
+
+
+  @Override
+  public String toString() {
+    return getName();
+  }
+
 }

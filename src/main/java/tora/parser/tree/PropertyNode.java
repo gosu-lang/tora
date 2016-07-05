@@ -2,12 +2,9 @@ package tora.parser.tree;
 
 import tora.parser.Tokenizer;
 
-public class PropertyNode extends Node
+public class PropertyNode extends FunctionNode
 {
-
-  private String _args = ""; //Should only ever have one argument for setters
   private boolean _isSetter;
-  private boolean _isStatic;
 
   public PropertyNode( String name )
   {
@@ -20,43 +17,26 @@ public class PropertyNode extends Node
     _isSetter = isSetter;
   }
 
-  public PropertyNode(String name, String args, boolean isSetter) {
-    super(name);
+  public PropertyNode(String name, String className, String args, boolean isSetter) {
+    super(name, className, args);
     _isSetter = isSetter;
-    _args = args;
   }
 
-  public PropertyNode(String name, String args, boolean isSetter, boolean isStatic) {
-    super(name);
+  public PropertyNode(String name, String className, String args, boolean isStatic, boolean isSetter) {
+    super(name, className, args, isStatic);
     _isSetter = isSetter;
-    _args = args;
-    _isStatic = isStatic;
-  }
-
-  public boolean isStatic() {
-    return _isStatic;
   }
 
   public boolean isSetter() {
     return _isSetter;
   }
 
-  public void setStatic(boolean isStatic) {
-    _isStatic = isStatic;
-  }
-
-
   @Override
   public String genCode()
   {
-    String functionBodyCode;
-    try {
-      functionBodyCode = this.getChildren().get(0).genCode();
-    } catch (IndexOutOfBoundsException e) {
-      functionBodyCode = "{}";
-    }
+    String functionBodyCode = getChildren().isEmpty()?"{}":getChildren().get(0).genCode();
     return  (_isSetter?"set":"get") +
-            ": function " + (_isSetter?"set":"get") + "(" + _args + ")" +
+            ": function " + (_isSetter?"set":"get") + "(" + getArgs() + ")" +
             functionBodyCode; //Should have one FunctionBodyNode child
   }
 
@@ -64,7 +44,7 @@ public class PropertyNode extends Node
   public boolean equals(Object obj) {
     if (!(obj instanceof PropertyNode)) return false;
     PropertyNode node = (PropertyNode) obj;
-    return _name.equals(node.getName()) && _isStatic == node.isStatic() && _isSetter == node.isSetter() ;
+    return _name.equals(node.getName()) && isStatic() == node.isStatic() && _isSetter == node.isSetter() ;
   }
 
 }

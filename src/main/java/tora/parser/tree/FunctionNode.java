@@ -53,13 +53,7 @@ public class FunctionNode extends Node
   @Override
   public String genCode()
   {
-
-    String functionBodyCode;
-    try {
-      functionBodyCode = this.getChildren().get(0).genCode();
-    } catch (IndexOutOfBoundsException e) {
-      functionBodyCode = "{}";
-    }
+    String functionBodyCode = getChildren().isEmpty()?"{}":getChildren().get(0).genCode();
     return  _className + (_isStatic?".":".prototype.") + //If static, can be method of class directly
             getName() + " = " + "function" + "(" + _args + ")" + functionBodyCode;
   }

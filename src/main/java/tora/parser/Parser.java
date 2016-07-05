@@ -57,14 +57,14 @@ public class Parser
         Tokenizer.Token staticToken = _currentToken;
         nextToken();
         if (matchClassKeyword("get") || matchClassKeyword("set")) {
-          _classNode.addChild(parseStaticProperty(staticToken));
+          _classNode.addChild(parseStaticProperty(className, staticToken));
         } else if (match(TokenType.IDENTIFIER)) {
           _classNode.addChild(parseStaticFunction(className, staticToken));
         } else {
           //TODO: add error
         }
       } else if (matchClassKeyword("get") || matchClassKeyword("set")) {
-        _classNode.addChild(parseProperty());
+        _classNode.addChild(parseProperty(className));
       } else if (match(TokenType.IDENTIFIER)) {
         _classNode.addChild(parseFunction(className));
       } else if (match(TokenType.COMMENT)) {
@@ -84,7 +84,8 @@ public class Parser
       if (match('}')) {
         Tokenizer.Token end = _currentToken;
         nextToken();
-        ConstructorNode node = new ConstructorNode(className, args, start, end);
+        ConstructorNode node = new ConstructorNode(className, className, args);
+        node.setTokens(start, end);
         node.addChild(body);
         return node;
       }
@@ -118,15 +119,15 @@ public class Parser
     return null;
   }
 
-  private PropertyNode parseStaticProperty(Tokenizer.Token staticToken) {
-    PropertyNode propertyNode = parseProperty();
+  private PropertyNode parseStaticProperty(String className, Tokenizer.Token staticToken) {
+    PropertyNode propertyNode = parseProperty(className);
     propertyNode.setTokens(staticToken, propertyNode.getEnd());
     propertyNode.setStatic(true);
     return propertyNode;
   }
 
 
-  private PropertyNode parseProperty() {
+  private PropertyNode parseProperty(String className) {
     Tokenizer.Token start = _currentToken; //'get' or 'set'
     boolean isSetter = matchClassKeyword("set");
     nextToken();
@@ -138,7 +139,7 @@ public class Parser
       if (match('}')) {
         Tokenizer.Token end = _currentToken;
         nextToken();
-        PropertyNode node = new PropertyNode(functionName.getValue(), args, isSetter);
+        PropertyNode node = new PropertyNode(functionName.getValue(), className, args, isSetter);
         node.setTokens(start, end);
         node.addChild(body);
         return node;

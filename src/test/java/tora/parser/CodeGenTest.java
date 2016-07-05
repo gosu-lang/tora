@@ -68,7 +68,7 @@ public class CodeGenTest
     //Make a class with a getter and setter of the same name
     ClassNode demoClass = new ClassNode("DemoClass");
     PropertyNode dohGet = new PropertyNode("doh", false);
-    PropertyNode dohSet = new PropertyNode("doh", "d", true);
+    PropertyNode dohSet = new PropertyNode("doh", "DemoClass", "d", true);
     demoClass.addChild(dohGet);
     demoClass.addChild(dohSet);
     dohGet.addChild(new FunctionBodyNode("{return this._doh;}"));
@@ -89,7 +89,7 @@ public void testStaticPropertiesInClass() {
   ClassNode demoClass = new ClassNode("DemoClass");
   PropertyNode dohGet = new PropertyNode("doh", false);
   dohGet.setStatic(true);
-  PropertyNode dohSet = new PropertyNode("doh", "d", true);
+  PropertyNode dohSet = new PropertyNode("doh", "DemoClass", "d", true);
   dohSet.setStatic(true);
   demoClass.addChild(dohGet);
   demoClass.addChild(dohSet);
@@ -183,9 +183,9 @@ public void testStaticPropertiesInClass() {
     ClassNode demoClass = new ClassNode("DemoClass");
     ConstructorNode demoConstructor = new ConstructorNode("DemoClass");
     FunctionNode bar = new FunctionNode("bar", "DemoClass", false);
-    PropertyNode dohSet = new PropertyNode("doh", "d", true);
+    PropertyNode dohSet = new PropertyNode("doh", "DemoClass", "d", true);
     PropertyNode dohGet = new PropertyNode("doh", false);
-    PropertyNode pohSet = new PropertyNode("poh", "p", true);
+    PropertyNode pohSet = new PropertyNode("poh", "DemoClass", "p", true);
     PropertyNode pohGet = new PropertyNode("poh", false);
     FunctionNode staticFoo = new FunctionNode("staticFoo", "DemoClass", true);
     demoClass.addChild(demoConstructor);
