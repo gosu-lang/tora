@@ -22,13 +22,9 @@ public class ClassNode extends Node {
         "if (!(instance instanceof Constructor)) { " +
         "throw new TypeError(\"Cannot call a class as a function\") } }\n";
 
-    private static final List<Class> CLASS_GEN_ORDER = Arrays.asList(ConstructorNode.class, FunctionNode.class,
-        PropertyNode.class);
-
     public ClassNode(String name ) {
         super(name);
     }
-
 
     @Override
     public String genCode() {
@@ -42,8 +38,8 @@ public class ClassNode extends Node {
             code += "\n\t" + new ConstructorNode(getName() ).genCode();
         } else code += "\n\t" + getChildren(ConstructorNode.class).get(0).genCode();
 
-        for (Node node : getChildren(FunctionNode.class)) {
-            code += "\n\t" + node.genCode();
+        for (FunctionNode node : getChildren(FunctionNode.class)) {
+            if (node.getClass().equals(FunctionNode.class)) code += "\n\t" + node.genCode();
         }
 
         code += genPropertyObjectCode(getChildren(PropertyNode.class));

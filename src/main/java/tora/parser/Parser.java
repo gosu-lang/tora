@@ -5,10 +5,9 @@ import tora.parser.tree.*;
 public class Parser
 {
   String _src;
-  ClassNode _classNode;
+  private ClassNode _classNode;
   private Tokenizer _tokenizer;
   private Tokenizer.Token _currentToken;
-
 
   //Constructor sets the src from which the parser reads
   public Parser(Tokenizer tokenizer){
