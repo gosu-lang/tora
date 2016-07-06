@@ -39,6 +39,8 @@ public class ClassNode extends Node {
         return _errorList.size();
     }
 
+    public List<Error> getErrorList() { return _errorList; }
+
     @Override
     public String genCode() {
         String code = CLASS_CALL_CHECK; //Makes sure constructor is called correctly

@@ -52,7 +52,7 @@ public class Parser
 
   private void parseClassBody(String className)
   {
-    while(!match('}')) {
+    while(!match('}') && !match(TokenType.EOF)) {
       if (matchClassKeyword("constructor")) {
         _classNode.addChild(parseConstructor(className));
       } else if (matchClassKeyword("static")) { //properties and functions can both be static
@@ -60,7 +60,7 @@ public class Parser
         nextToken();
         if (matchClassKeyword("get") || matchClassKeyword("set")) {
           _classNode.addChild(parseStaticProperty(className, staticToken));
-        } else if (match(TokenType.IDENTIFIER)) {
+        } else {
           _classNode.addChild(parseStaticFunction(className, staticToken));
         }
       } else if (matchClassKeyword("get") || matchClassKeyword("set")) {
@@ -70,7 +70,7 @@ public class Parser
       } else if (match(TokenType.COMMENT)) {
         nextToken(); //ignore comments for now
       } else {
-        //TODO: add error
+        error("Unexpected token: " + _currentToken.toString());
         nextToken();
       }
     }
@@ -78,20 +78,17 @@ public class Parser
 
   private ConstructorNode parseConstructor(String className) {
     Tokenizer.Token start = _currentToken; //'constructor'
+    skip(matchClassKeyword("constructor"));
+
+    String args = parseArgs();
+    FunctionBodyNode body = parseFunctionBody();
+
+    Tokenizer.Token end = _currentToken;
     nextToken();
-    if (match('(')) {
-      String args = parseArgs();
-      FunctionBodyNode body = parseFunctionBody();
-      if (match('}')) {
-        Tokenizer.Token end = _currentToken;
-        nextToken();
-        ConstructorNode node = new ConstructorNode(className, className, args);
-        node.setTokens(start, end);
-        node.addChild(body);
-        return node;
-      }
-    }
-    return null;
+    ConstructorNode node = new ConstructorNode(className, className, args);
+    node.setTokens(start, end);
+    node.addChild(body);
+    return node;
   }
 
   private FunctionNode parseStaticFunction(String className, Tokenizer.Token staticToken) {
@@ -104,20 +101,17 @@ public class Parser
   private FunctionNode parseFunction(String className) {
     Tokenizer.Token start = _currentToken; //Name of function
     String functionName = start.getValue();
+    skip(match(TokenType.IDENTIFIER));
+
+    String args = parseArgs();
+    FunctionBodyNode body = parseFunctionBody();
+
+    FunctionNode node = new FunctionNode(functionName, className, args);
+    node.setTokens(start, _currentToken);
+    node.addChild(body);
     nextToken();
-    if (match('(')) {
-      String args = parseArgs();
-      FunctionBodyNode body = parseFunctionBody();
-      if (match('}')) {
-        Tokenizer.Token end = _currentToken;
-        nextToken();
-        FunctionNode node = new FunctionNode(functionName, className, args);
-        node.setTokens(start, end);
-        node.addChild(body);
-        return node;
-      }
-    }
-    return null;
+    return node;
+
   }
 
   private PropertyNode parseStaticProperty(String className, Tokenizer.Token staticToken) {
@@ -131,30 +125,27 @@ public class Parser
   private PropertyNode parseProperty(String className) {
     Tokenizer.Token start = _currentToken; //'get' or 'set'
     boolean isSetter = matchClassKeyword("set");
-    nextToken();
+    skip(matchClassKeyword("get") || matchClassKeyword("set"));
     Tokenizer.Token functionName = _currentToken;
+    skip(match(TokenType.IDENTIFIER));
+
+    String args = parseArgs();
+    FunctionBodyNode body = parseFunctionBody();
+
+    PropertyNode node = new PropertyNode(functionName.getValue(), className, args, isSetter);
+    node.setTokens(start, _currentToken);
+    node.addChild(body);
     nextToken();
-    if (match('(')) {
-      String args = parseArgs();
-      FunctionBodyNode body = parseFunctionBody();
-      if (match('}')) {
-        Tokenizer.Token end = _currentToken;
-        nextToken();
-        PropertyNode node = new PropertyNode(functionName.getValue(), className, args, isSetter);
-        node.setTokens(start, end);
-        node.addChild(body);
-        return node;
-      }
-    }
-    return null;
+    return node;
   }
 
+  /*Concats arguments into a comma-separated string*/
   private String parseArgs() {
-    nextToken(); // skip over the '('
+    skip(match('('));
     StringBuilder val = new StringBuilder();
     Matcher matcher = () -> match(')') || match(TokenType.IDENTIFIER);
     expect(matcher);
-    while (!match(')')) {
+    while (!match(')') && !match(TokenType.EOF)) {
       if (match(TokenType.IDENTIFIER)) {
         matcher = () -> match(',') || match(')'); //ending paren or comma can follow identifier
         concatToken(val);
@@ -165,15 +156,16 @@ public class Parser
       nextToken();
       expect(matcher);
     }
-    nextToken(); //skip over the ')'
+    skip(match(')'));
     return val.toString();
   }
 
   private FunctionBodyNode parseFunctionBody() {
     StringBuilder val = new StringBuilder();
+    expect(match('{'));
     concatToken(val); // '{'
     int curlyCount = 1;
-    while (curlyCount > 0) {
+    while (curlyCount > 0 && !match(TokenType.EOF)) {
       nextToken();
       if (match('}')) curlyCount--;
       if (match('{')) curlyCount++;
@@ -186,11 +178,7 @@ public class Parser
   // Utilities
   //========================================================================================
 
-  //Used to create lambda functions for matching tokens
-  private interface Matcher {
-    boolean match();
-  }
-
+  /*Concats current token to a string builder*/
   private void concatToken (StringBuilder val) {
     if (match(TokenType.NUMBER)) {
       val.append(" ");
@@ -201,25 +189,43 @@ public class Parser
     }
   }
 
+  //Used to create lambda functions for matching tokens
+  private interface Matcher {
+    boolean match();
+  }
+
   private void expect(Matcher matcher) {
-    if (!matcher.match()) error("Unexpected Token: " + _currentToken.toString());
+    if (!matcher.match()) expect(false);
+  }
+
+  private void expect(boolean b) {
+    if (!b) error("Unexpected Token: " + _currentToken.toString());
+  }
+
+  /*assert an expectation for the current token then skip*/
+  private void skip(boolean b) {
+    expect(b);
+    nextToken();
   }
 
   private void error(String errorMsg) {
     _classNode.addError(new Error(errorMsg));
   }
 
+  /*Match single character punctuation*/
   private boolean match( char c )
   {
     return match(TokenType.PUNCTUATION, String.valueOf(c));
   }
 
+  /*Match reserved keywords only*/
   private boolean matchKeyword(String val)
   {
     return match(TokenType.KEYWORD, val);
   }
 
-  /*Matches conditional keywords such as "constructor", which are only keywords within a class*/
+  /*Matches conditional keywords such as "constructor", which are sometimes keywords within a class and identifiers
+  otherwise*/
   private boolean matchClassKeyword(String val)
   {
     if (!match(TokenType.IDENTIFIER, val)) return false;
@@ -230,8 +236,7 @@ public class Parser
   }
 
   private boolean match(TokenType type, String val) {
-    return (_currentToken.getType() == type &&
-            _currentToken.getValue().equals(val));
+    return match(type) && _currentToken.getValue().equals(val);
   }
 
   private boolean match( TokenType type )
@@ -243,11 +248,12 @@ public class Parser
     return _nextToken;
   }
 
-  //Keep track of next token as well for context-sensitive class keywords
+  //Keep track of next token as well to help classify class keywords
   private void nextToken()
   {
     if (_nextToken == null) _nextToken = _tokenizer.next(); //For the first token
     _currentToken = _nextToken;
+    if (match(TokenType.EOF)) error("Unexpected end of input");
     if (_nextToken.getType() != TokenType.EOF)_nextToken = _tokenizer.next();
   }
 }

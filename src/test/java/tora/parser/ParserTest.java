@@ -110,6 +110,20 @@ public class ParserTest {
         assertHasError(parse("class DemoClass { bar(a b){} }"));
     }
 
+    @Test
+    public void unexpectedEOFError() {
+        assertHasError(parse("class DemoClass { "));
+        assertHasError(parse("class DemoClass { bar(){}"));
+    }
+
+    @Test
+    public void unexpectedTokensError() {
+        assertHasError(parse("class DemoClass { += }")); //operator as class property
+        assertHasError(parse("class DemoClass { return(){} }")); //keyword as class property
+        assertHasError(parse("class DemoClass { bar{}}")); //function with no argument parens
+        assertHasError(parse("class DemoClass { bar() }")); //function with no function body
+    }
+
     /*Runs code through tokenizer, parser, and codegen; uses Nashorn to verify results*/
     @Test
     public void endTest() throws ScriptException, FileNotFoundException {
@@ -147,6 +161,10 @@ public class ParserTest {
 
     private void assertHasError(ClassNode tree) {
         assertNotEquals(tree.errorCount(), 0);
+    }
+
+    private void printErrors(ClassNode tree) {
+        for (Error err : tree.getErrorList()) System.out.println(err.toString());
     }
 
     private void assertHasChildren(ClassNode parent, Node... expectedChildren) {

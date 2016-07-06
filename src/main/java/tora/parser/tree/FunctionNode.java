@@ -50,6 +50,10 @@ public class FunctionNode extends Node
     return _args;
   }
 
+  public void setArgs(String args) {
+    _args = args;
+  }
+
   @Override
   public String genCode()
   {
