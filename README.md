@@ -1,8 +1,6 @@
 
 
-# Tora
-
-<img style="float:left" src="http://i.imgur.com/rfwN51d.jpg">
+![Tora](http://i.imgur.com/ndYNdk4.jpg)
 
 Tora is a [Gosu](http://gosu-lang.github.io/) extension library that allows for seamless interaction with javascript resources, leveraging Gosu's Open Type System and the [Java Nashorn](http://openjdk.java.net/projects/nashorn/) project.
 
