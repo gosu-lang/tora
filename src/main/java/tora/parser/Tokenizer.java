@@ -125,7 +125,6 @@ public class Tokenizer
       ret = errToken(String.valueOf(_ch), "unknown char");
       nextChar();
     }
-
     return ret;
   }
 
