@@ -116,23 +116,23 @@ public class ParserTest {
 
     @Test
     public void parseArgsError() {
-        assertHasError(this.parseClass("class DemoClass { bar(a,){} }"));
-        assertHasError(this.parseClass("class DemoClass { bar(,){} }"));
-        assertHasError(this.parseClass("class DemoClass { bar(a b){} }"));
+        assertHasError(this.parse("class DemoClass { bar(a,){} }"));
+        assertHasError(this.parse("class DemoClass { bar(,){} }"));
+        assertHasError(this.parse("class DemoClass { bar(a b){} }"));
     }
 
     @Test
     public void unexpectedEOFError() {
-        assertHasError(this.parseClass("class DemoClass { "));
-        assertHasError(this.parseClass("class DemoClass { bar(){}"));
+        assertHasError(this.parse("class DemoClass { "));
+        assertHasError(this.parse("class DemoClass { bar(){}"));
     }
 
     @Test
     public void unexpectedTokensError() {
-        assertHasError(parseClass("class DemoClass { += }")); //operator as class property
-        assertHasError(this.parseClass("class DemoClass { return(){} }")); //keyword as class property
-        assertHasError(this.parseClass("class DemoClass { bar{}}")); //function with no argument parens
-        assertHasError(this.parseClass("class DemoClass { bar() }")); //function with no function body
+        assertHasError(parse("class DemoClass { += }")); //operator as class property
+        assertHasError(parse("class DemoClass { return(){} }")); //keyword as class property
+        assertHasError(parse("class DemoClass { bar{}}")); //function with no argument parens
+        assertHasError(parse("class DemoClass { bar() }")); //function with no function body
     }
 
     /*Runs code through tokenizer, parser, and codegen; uses Nashorn to verify results*/
@@ -178,11 +178,11 @@ public class ParserTest {
         return parse(code).getChildren(ClassNode.class).get(0);
     }
 
-    private void assertHasError(ClassNode tree) {
+    private void assertHasError(ProgramNode tree) {
         assertNotEquals(tree.errorCount(), 0);
     }
 
-    private void printErrors(ClassNode tree) {
+    private void printErrors(ProgramNode tree) {
         for (Error err : tree.getErrorList()) System.out.println(err.toString());
     }
 

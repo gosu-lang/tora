@@ -27,15 +27,26 @@ public abstract class Node
   }
 
   public <T> List<T> getChildren(Class<T> clazz) {
-    LinkedList<T> lst = new LinkedList<>();
+  LinkedList<T> lst = new LinkedList<>();
+  for( Node child : _children )
+  {
+    if( clazz.isInstance( child ) )
+    {
+      lst.add((T) child);
+    }
+  }
+  return lst;
+}
+
+  public <T extends Node> T getFirstChild (Class<T> clazz) {
     for( Node child : _children )
     {
       if( clazz.isInstance( child ) )
       {
-        lst.add((T) child);
+        return (T) child;
       }
     }
-    return lst;
+    return null;
   }
 
   public void addChild(Node n) {

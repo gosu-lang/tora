@@ -1,5 +1,6 @@
 package tora.plugin;
 
+import com.sun.xml.internal.rngom.digested.DDataPattern;
 import gw.config.CommonServices;
 import gw.lang.reflect.*;
 import gw.util.GosuExceptionUtil;
@@ -42,9 +43,10 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
   }
 
   private void addConstructor(ClassNode classNode) {
-    if (classNode.getChildren(ConstructorNode.class).isEmpty()) return;
+    ConstructorNode constructor = classNode.getFirstChild(ConstructorNode.class);
+    ParameterInfoBuilder[] params = (constructor == null)?null:makeParamList(constructor.getArgs());
     _constructor = new ConstructorInfoBuilder()
-            .withParameters(makeParamList(classNode.getChildren(ConstructorNode.class).get(0).getArgs()))
+            .withParameters(params)
             .withConstructorHandler((args) -> {
               try {
                 StringBuffer buff = new StringBuffer();

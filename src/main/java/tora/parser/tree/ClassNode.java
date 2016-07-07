@@ -26,20 +26,7 @@ public class ClassNode extends Node {
 
     public ClassNode(String name ) {
         super(name);
-        _errorList = new LinkedList<>();
     }
-
-    private List<Error> _errorList;
-
-    public void addError(Error error) {
-        _errorList.add(error);
-    }
-
-    public int errorCount() {
-        return _errorList.size();
-    }
-
-    public List<Error> getErrorList() { return _errorList; }
 
     @Override
     public String genCode() {

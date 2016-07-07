@@ -20,6 +20,10 @@ public class ImportingJavaClassTest
     public static int staticFoo() {
       return 42;
     }
+
+    public String bar() {
+      return "bar";
+    }
   }
 
   @BeforeClass
@@ -30,6 +34,7 @@ public class ImportingJavaClassTest
   @Test
   public void testSimpleClassNode() throws ScriptException {
     assertEquals(42, eval("return ImportClass.foo()"));
+    assertEquals("bar", eval("var imported = new ImportClass(); return imported.bar()"));
   }
 
 
