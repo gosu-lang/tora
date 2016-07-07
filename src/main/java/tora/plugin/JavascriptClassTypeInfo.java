@@ -4,10 +4,7 @@ import gw.config.CommonServices;
 import gw.lang.reflect.*;
 import gw.util.GosuExceptionUtil;
 import tora.parser.Parser;
-import tora.parser.tree.ClassNode;
-import tora.parser.tree.ConstructorNode;
-import tora.parser.tree.FunctionNode;
-import tora.parser.tree.PropertyNode;
+import tora.parser.tree.*;
 
 import javax.script.*;
 import java.util.*;
@@ -27,14 +24,15 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
     super( javascriptType );
 
     _parser = parser;
-    ClassNode classNode = parser.parse();
+    ProgramNode programNode = parser.parse();
+    ClassNode classNode = programNode.getChildren(ClassNode.class).get(0);
     _constructorList = new ArrayList<>();
     _methods = new MethodList();
     _propertiesList = new ArrayList<>();
     _propertiesMap = new HashMap<String, IPropertyInfo>();
     try {
       _engine = new ScriptEngineManager().getEngineByName("nashorn");
-      _engine.eval(classNode.genCode());
+      _engine.eval(programNode.genCode());
       addConstructor(classNode);
       addMethods(classNode);
       addProperties(classNode);
@@ -44,6 +42,7 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
   }
 
   private void addConstructor(ClassNode classNode) {
+    if (classNode.getChildren(ConstructorNode.class).isEmpty()) return;
     _constructor = new ConstructorInfoBuilder()
             .withParameters(makeParamList(classNode.getChildren(ConstructorNode.class).get(0).getArgs()))
             .withConstructorHandler((args) -> {

@@ -64,6 +64,12 @@ public class CodeGenTest
   }
 
   @Test
+  public void testSimpleImportNode() {
+    Assert.assertEquals("var Class = Java.type(\'package.name.javaclass.Class\')",
+            new ImportNode("package.name.javaclass.Class").genCode());
+  }
+
+  @Test
   public void testPropertiesInClass() {
     //Make a class with a getter and setter of the same name
     ClassNode demoClass = new ClassNode("DemoClass");

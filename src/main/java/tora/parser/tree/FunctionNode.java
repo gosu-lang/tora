@@ -67,6 +67,6 @@ public class FunctionNode extends Node
   public boolean equals(Object obj) {
     if (!(obj instanceof FunctionNode)) return false;
     FunctionNode node = (FunctionNode) obj;
-    return _name.equals(node.getName()) && _isStatic == ((FunctionNode) obj).isStatic();
+    return getName().equals(node.getName()) && _isStatic == ((FunctionNode) obj).isStatic();
   }
 }

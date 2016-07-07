@@ -11,7 +11,7 @@ import java.util.List;
  */
 public abstract class Node
 {
-  String _name;
+  private String _name;
   Tokenizer.Token _start;
   Tokenizer.Token _end;
   List<Node> _children;

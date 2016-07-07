@@ -7,6 +7,7 @@ public class Parser
 {
   String _src;
   private ClassNode _classNode;
+  private ProgramNode _programNode;
   private Tokenizer _tokenizer;
   private Tokenizer.Token _currentToken, _nextToken;
 
@@ -14,17 +15,20 @@ public class Parser
 
   //Constructor sets the src from which the parser reads
   public Parser(Tokenizer tokenizer){
-      _tokenizer = tokenizer;
+    _tokenizer = tokenizer;
+    _programNode = new ProgramNode();
   }
 
   public boolean isES6Class() {
     return _classNode != null;
   }
 
-  public ClassNode parse() {
+  public ProgramNode parse() {
     nextToken();
+    //Can only import classes at top of program
+    parseImports();
     parseClassStatement();
-    return _classNode;
+    return _programNode;
   }
 
   private void parseClassStatement()
@@ -32,22 +36,38 @@ public class Parser
     if( match(TokenType.CLASS))
     {
       nextToken();
-      if( match(TokenType.IDENTIFIER) )
-      {
-        Tokenizer.Token className = _currentToken;
-        nextToken();
-        _classNode = new ClassNode( className.getValue() );
-        if (match( '{' ))
-        {
-          nextToken();
-          parseClassBody(className.getValue());
-          if (match( '}' )) {
-            Tokenizer.Token end = _currentToken;
-            _classNode.setTokens(className, end);
-          }
-        }
-      }
+      Tokenizer.Token className = _currentToken;
+      skip(match(TokenType.IDENTIFIER));
+      _classNode = new ClassNode( className.getValue() );
+      _programNode.addChild(_classNode);
+      skip(match('{'));
+      parseClassBody(className.getValue());
+      skip(match('}'));
+      Tokenizer.Token end = _currentToken;
+      _classNode.setTokens(className, end);
     }
+  }
+
+  private void parseImports() {
+    while (matchKeyword("import") && !match(TokenType.EOF)) {
+      _programNode.addChild(parseImport());
+      if (match(';')) nextToken(); //TODO: learn semi-colon syntax
+    }
+  }
+
+
+  private ImportNode parseImport() {
+    Tokenizer.Token start = _currentToken;
+    skip(matchKeyword("import"));
+    StringBuilder packageName = new StringBuilder();
+    Matcher matcher = () -> match(TokenType.IDENTIFIER);
+    while (matcher.match()) {
+      concatToken(packageName);
+      if (match(TokenType.IDENTIFIER)) matcher = () -> match('.');
+      if (match('.')) matcher = () -> match(TokenType.IDENTIFIER);
+      nextToken();
+    }
+    return new ImportNode(packageName.toString());
   }
 
   private void parseClassBody(String className)
@@ -224,8 +244,8 @@ public class Parser
     return match(TokenType.KEYWORD, val);
   }
 
-  /*Matches conditional keywords such as "constructor", which are sometimes keywords within a class and identifiers
-  otherwise*/
+  /*Matches conditional keywords such as "constructor", which are sometimes keywords within a class
+   and identifiers otherwise*/
   private boolean matchClassKeyword(String val)
   {
     if (!match(TokenType.IDENTIFIER, val)) return false;
@@ -253,7 +273,6 @@ public class Parser
   {
     if (_nextToken == null) _nextToken = _tokenizer.next(); //For the first token
     _currentToken = _nextToken;
-    if (match(TokenType.EOF)) error("Unexpected end of input");
     if (_nextToken.getType() != TokenType.EOF)_nextToken = _tokenizer.next();
   }
 }

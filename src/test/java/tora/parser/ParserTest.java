@@ -4,7 +4,6 @@ package tora.parser;
  * Created by lmeyer-teruel on 6/27/2016.
  */
 
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import tora.parser.tree.*;
@@ -45,32 +44,32 @@ public class ParserTest {
 
     @Test
     public void parseEmptyClass() {
-        ClassNode tree = parse("class DemoClass{}");
+        ClassNode tree = this.parseClass("class DemoClass{}");
         assertEquals(tree.getName(), "DemoClass");
     }
 
 
     @Test
     public void parseSimpleConstructor() {
-        ClassNode tree = parse("class DemoClass{ constructor(){} }");
+        ClassNode tree = this.parseClass("class DemoClass{ constructor(){} }");
         assertHasChildren(tree, new ConstructorNode("DemoClass"));
     }
 
     @Test
     public void parseSimpleFunction() {
-        ClassNode tree = parse("class DemoClass{ bar(){} }");
+        ClassNode tree = this.parseClass("class DemoClass{ bar(){} }");
         assertHasChildren(tree, new FunctionNode("bar", "DemoClass", false));
     }
 
     @Test
     public void parseSimpleStaticFunction() {
-        ClassNode tree = parse("class DemoClass{ static bar(){} }");
+        ClassNode tree = this.parseClass("class DemoClass{ static bar(){} }");
         assertHasChildren(tree, new FunctionNode("bar", "DemoClass", true));
     }
 
     @Test
     public void parseSimpleProperty() {
-        ClassNode tree = parse("class DemoClass{ get foo(){} set foo(){}}");
+        ClassNode tree = this.parseClass("class DemoClass{ get foo(){} set foo(){}}");
         assertHasChildren(tree,
                 new PropertyNode("foo", "DemoClass", "", false, false),
                 new PropertyNode("foo", "DemoClass", "", false, true)
@@ -79,7 +78,7 @@ public class ParserTest {
 
     @Test
     public void parseSimpleStaticProperty() {
-        ClassNode tree = parse("class DemoClass{ static get foo(){} static set foo(){}}");
+        ClassNode tree = this.parseClass("class DemoClass{ static get foo(){} static set foo(){}}");
         assertHasChildren(tree,
                 new PropertyNode("foo", "DemoClass", "", true, false),
                 new PropertyNode("foo", "DemoClass", "", true, true)
@@ -89,7 +88,7 @@ public class ParserTest {
     @Test
     public void parseContextualClassKeywords() {
         //Function nodes that have the names of class keywords
-        ClassNode tree = parse("class DemoClass{ " +
+        ClassNode tree = this.parseClass("class DemoClass{ " +
                 "static(){} " +
                 "get(){} " +
                 "set(){} " +
@@ -104,31 +103,43 @@ public class ParserTest {
     }
 
     @Test
+    public void parseImports() {
+        ProgramNode tree = this.parse("" +
+                "import test.package;" +
+                "import edward.cai " +
+                "import another.package.name");
+        assertHasChildren(tree,
+                new ImportNode("test.package"),
+                new ImportNode("edward.cai"),
+                new ImportNode("another.package.name"));
+    }
+
+    @Test
     public void parseArgsError() {
-        assertHasError(parse("class DemoClass { bar(a,){} }"));
-        assertHasError(parse("class DemoClass { bar(,){} }"));
-        assertHasError(parse("class DemoClass { bar(a b){} }"));
+        assertHasError(this.parseClass("class DemoClass { bar(a,){} }"));
+        assertHasError(this.parseClass("class DemoClass { bar(,){} }"));
+        assertHasError(this.parseClass("class DemoClass { bar(a b){} }"));
     }
 
     @Test
     public void unexpectedEOFError() {
-        assertHasError(parse("class DemoClass { "));
-        assertHasError(parse("class DemoClass { bar(){}"));
+        assertHasError(this.parseClass("class DemoClass { "));
+        assertHasError(this.parseClass("class DemoClass { bar(){}"));
     }
 
     @Test
     public void unexpectedTokensError() {
-        assertHasError(parse("class DemoClass { += }")); //operator as class property
-        assertHasError(parse("class DemoClass { return(){} }")); //keyword as class property
-        assertHasError(parse("class DemoClass { bar{}}")); //function with no argument parens
-        assertHasError(parse("class DemoClass { bar() }")); //function with no function body
+        assertHasError(parseClass("class DemoClass { += }")); //operator as class property
+        assertHasError(this.parseClass("class DemoClass { return(){} }")); //keyword as class property
+        assertHasError(this.parseClass("class DemoClass { bar{}}")); //function with no argument parens
+        assertHasError(this.parseClass("class DemoClass { bar() }")); //function with no function body
     }
 
     /*Runs code through tokenizer, parser, and codegen; uses Nashorn to verify results*/
     @Test
     public void endTest() throws ScriptException, FileNotFoundException {
         URL url = getClass().getResource("/DemoClass.js");
-        String genCode = parse(new BufferedReader(new FileReader(url.getFile()))).genCode();
+        String genCode = parseClass(new BufferedReader(new FileReader(url.getFile()))).genCode();
         engine.eval(genCode);
         engine.eval("var dem = new DemoClass(10,30,2);");
         //Test constructor
@@ -151,12 +162,20 @@ public class ParserTest {
     // Test Helpers
     //========================================================================================
 
-    private ClassNode parse(String code) {
+    private ProgramNode parse(String code) {
         return new Parser(new Tokenizer(code)).parse();
     }
 
-    private ClassNode parse(BufferedReader code) {
+    private ProgramNode parse(BufferedReader code) {
         return new Parser(new Tokenizer(code)).parse();
+    }
+
+    private ClassNode parseClass(String code) {
+        return parse(code).getChildren(ClassNode.class).get(0);
+    }
+
+    private ClassNode parseClass(BufferedReader code) {
+        return parse(code).getChildren(ClassNode.class).get(0);
     }
 
     private void assertHasError(ClassNode tree) {
@@ -167,13 +186,12 @@ public class ParserTest {
         for (Error err : tree.getErrorList()) System.out.println(err.toString());
     }
 
-    private void assertHasChildren(ClassNode parent, Node... expectedChildren) {
+    private void assertHasChildren(Node parent, Node... expectedChildren) {
         List<Node> children = parent.getChildren();
         if (children.size() != expectedChildren.length) error("incorrect number of child nodes");
         for (int i = 0; i < children.size(); i++) {
             assertEquals(children.get(i), expectedChildren[i]);
         }
-        assertEquals(parent.errorCount(), 0);
     }
 }
 

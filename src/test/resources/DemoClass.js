@@ -1,4 +1,3 @@
-
 class DemoClass {
 
   // constructor definition

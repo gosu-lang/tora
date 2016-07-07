@@ -44,7 +44,7 @@ public class PropertyNode extends FunctionNode
   public boolean equals(Object obj) {
     if (!(obj instanceof PropertyNode)) return false;
     PropertyNode node = (PropertyNode) obj;
-    return _name.equals(node.getName()) && isStatic() == node.isStatic() && _isSetter == node.isSetter() ;
+    return getName().equals(node.getName()) && isStatic() == node.isStatic() && _isSetter == node.isSetter() ;
   }
 
 }

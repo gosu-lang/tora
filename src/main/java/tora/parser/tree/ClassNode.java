@@ -43,25 +43,31 @@ public class ClassNode extends Node {
 
     @Override
     public String genCode() {
-        String code = CLASS_CALL_CHECK; //Makes sure constructor is called correctly
-        if (!getChildren(PropertyNode.class).isEmpty()) code += CREATE_CLASS; //Defines getters and setters
+        StringBuilder code = new StringBuilder(CLASS_CALL_CHECK); //Makes sure constructor is called correctly
+        if (!getChildren(PropertyNode.class).isEmpty()) code.append(CREATE_CLASS); //Defines getters and setters
 
-        code += "var " + getName() + " = function() { ";
+        code.append("var ").append(getName()).append(" = function() { ");
 
         if (getChildren(ConstructorNode.class).isEmpty()) {
             //Gen default constructor if no child found
-            code += "\n\t" + new ConstructorNode(getName() ).genCode();
-        } else code += "\n\t" + getChildren(ConstructorNode.class).get(0).genCode();
-
-        for (FunctionNode node : getChildren(FunctionNode.class)) {
-            if (node.getClass().equals(FunctionNode.class)) code += "\n\t" + node.genCode();
+            code.append("\n\t").append(new ConstructorNode(getName() ).genCode());
+        } else {
+            //Should only have one constructor
+            code.append("\n\t").append(getChildren(ConstructorNode.class).get(0).genCode());
         }
 
-        code += genPropertyObjectCode(getChildren(PropertyNode.class));
+        for (FunctionNode node : getChildren(FunctionNode.class)) {
+            //generate for function nodes only (not nodes that extend functionNode such as PropertyNode)
+            if (node.getClass().equals(FunctionNode.class)) {
+                code.append("\n\t").append(node.genCode());
+            }
+        }
 
-        code += "\n\treturn " + getName() + ";\n}();";
+        code.append(genPropertyObjectCode(getChildren(PropertyNode.class)));
 
-        return code;
+        code.append("\n\treturn " + getName() + ";\n}();");
+
+        return code.toString();
     }
 
     private String genPropertyObjectCode (List<PropertyNode> propertyNodes) {
