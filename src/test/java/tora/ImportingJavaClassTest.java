@@ -3,9 +3,9 @@ package tora;
 import gw.config.CommonServices;
 import gw.lang.parser.*;
 import gw.util.GosuExceptionUtil;
+import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 
 import javax.script.ScriptException;
 
@@ -21,8 +21,8 @@ public class ImportingJavaClassTest
       return 42;
     }
 
-    public String bar() {
-      return "bar";
+    public String returnHello() {
+      return "hello";
     }
   }
 
@@ -32,9 +32,21 @@ public class ImportingJavaClassTest
   }
 
   @Test
-  public void testSimpleClassNode() throws ScriptException {
-    assertEquals(42, eval("return ImportClass.foo()"));
-    assertEquals("bar", eval("var imported = new ImportClass(); return imported.bar()"));
+  public void testJavaClassImport() throws ScriptException {
+    assertEquals(42, eval("return ImportClass.javaFoo()"));
+    assertEquals("hello", eval("var imported = new ImportClass(); return imported.javaBar()"));
+  }
+
+  @Test
+  public void testGosuClassImport() throws ScriptException {
+    assertEquals(43, eval("return ImportClass.gosuFoo()"));
+    assertEquals(70, eval("var imported = new ImportClass(); return imported.gosuDouble (35)"));
+  }
+
+  @Test
+  public void testImportsInJavascriptProgram() throws ScriptException {
+    assertEquals(43, eval("return ImportProgram.gosuFoo()"));
+    assertEquals(42, eval("return ImportProgram.javaFoo()"));
   }
 
 

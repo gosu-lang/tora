@@ -90,12 +90,21 @@ public class Tokenizer
     nextChar();
   }
 
+  public Token nextNonWhiteSpace() {
+    Token tok = next();
+    while (tok.getType() == TokenType.WHITESPACE) {
+      tok = next();
+    }
+    return tok;
+  }
+
   public Token next() {
-    consumeWhitespace();
-    updatePosition();
+    updatePosition(); //keep track of position when we begin consuming a token
     Token ret;
 
-    if (_ch == '\'' || _ch == '"') {
+    if (Character.isWhitespace(_ch)) {
+      ret = consumeWhitespace();
+    } else if (_ch == '\'' || _ch == '"') {
       ret = consumeString();
     } else if (TokenType.startsIdentifier(_ch)) {
       ret = consumeWord();
@@ -125,6 +134,7 @@ public class Tokenizer
       ret = errToken(String.valueOf(_ch), "unknown char");
       nextChar();
     }
+    if (ret.getType() == TokenType.COMMENT) return next(); //Throw away comments
     return ret;
   }
 
@@ -340,13 +350,19 @@ public class Tokenizer
     return newToken(TokenType.COMMENT, val.toString());
   }
 
+  private Token consumeWhitespace() {
+    StringBuilder val = new StringBuilder();
+    while (Character.isWhitespace(_ch)) {
+      val.append(_ch);
+      nextChar();
+    }
+    return newToken(TokenType.WHITESPACE, val.toString());
+  }
+
+
   //========================================================================================
   // Utilities
   //========================================================================================
-
-  private void consumeWhitespace() {
-    while (Character.isWhitespace(_ch)) nextChar();
-  }
 
   //Returns the next character in the stream without updating _ch
   private char peek() {

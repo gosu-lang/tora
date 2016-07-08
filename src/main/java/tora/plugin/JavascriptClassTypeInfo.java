@@ -12,7 +12,6 @@ import java.util.*;
 
 public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
 {
-  private final Parser _parser;
   private final ScriptEngine _engine;
   private IConstructorInfo _constructor;
   private List<IConstructorInfo> _constructorList;
@@ -20,12 +19,10 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
   private List<IPropertyInfo> _propertiesList;
   Map<String, IPropertyInfo> _propertiesMap;
 
-  public JavascriptClassTypeInfo( JavascriptTypeBase javascriptType, tora.parser.Parser parser )
+  public JavascriptClassTypeInfo( JavascriptTypeBase javascriptType, ProgramNode programNode)
   {
     super( javascriptType );
 
-    _parser = parser;
-    ProgramNode programNode = parser.parse();
     ClassNode classNode = programNode.getChildren(ClassNode.class).get(0);
     _constructorList = new ArrayList<>();
     _methods = new MethodList();

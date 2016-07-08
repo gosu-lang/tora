@@ -13,6 +13,7 @@ import gw.util.StreamUtil;
 import gw.util.concurrent.LockingLazyVar;
 import tora.parser.Parser;
 import tora.parser.Tokenizer;
+import tora.parser.tree.ProgramNode;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -100,37 +101,27 @@ public class JavascriptPlugin extends TypeLoaderBase
   public IType getType( String name )
   {
     IFile iFile = _jsSources.get().get( name );
+
     if( iFile != null )
     {
-      JavascriptClassType javascriptClassType = maybeGetClassType( this, name, iFile );
-      if( javascriptClassType == null )
+      try
       {
-        return new JavascriptProgramType( this, name, iFile);
-      } else {
-        return javascriptClassType;
+        Parser parser = new Parser( new Tokenizer( StreamUtil.getContent( new InputStreamReader( iFile.openInputStream() ) ) ) );
+        ProgramNode programNode = parser.parse();
+        if( parser.isES6Class() )
+        {
+          return new JavascriptClassType( this, name, iFile, programNode );
+        } else  {
+          return new JavascriptProgramType(this, name, iFile, programNode);
+        }
+      } catch (IOException e) {
+
       }
     }
 
     return null;
   }
 
-  private JavascriptClassType maybeGetClassType( JavascriptPlugin javascriptPlugin, String name, IFile iFile )
-  {
-    try
-    {
-      Parser parser = new Parser( new Tokenizer( StreamUtil.getContent( new InputStreamReader( iFile.openInputStream() ) ) ) );
-      parser.parse();
-      if( parser.isES6Class() )
-      {
-        return new JavascriptClassType( javascriptPlugin, name, iFile, parser );
-      }
-    }
-    catch( IOException e )
-    {
-      // TODO - log?
-    }
-    return  null;
-  }
 
   @Override
   public Set<? extends CharSequence> getAllNamespaces()

@@ -28,6 +28,7 @@ public class Parser
     //Can only import classes at top of program
     parseImports();
     parseClassStatement();
+    if (!isES6Class() && !match(TokenType.EOF)) _programNode.addChild(parseRestOfProgram());
     return _programNode;
   }
 
@@ -186,12 +187,21 @@ public class Parser
     concatToken(val); // '{'
     int curlyCount = 1;
     while (curlyCount > 0 && !match(TokenType.EOF)) {
-      nextToken();
+      nextWhiteSpace();
       if (match('}')) curlyCount--;
       if (match('{')) curlyCount++;
       concatToken(val);
     }
     return new FunctionBodyNode(val.toString());
+  }
+
+  private RestOfProgramNode parseRestOfProgram() {
+    StringBuilder program = new StringBuilder();
+    while (!match(TokenType.EOF)) {
+      concatToken(program);
+      nextWhiteSpace();
+    }
+    return new RestOfProgramNode(program.toString());
   }
 
   //========================================================================================
@@ -200,13 +210,7 @@ public class Parser
 
   /*Concats current token to a string builder*/
   private void concatToken (StringBuilder val) {
-    if (match(TokenType.NUMBER)) {
-      val.append(" ");
-    }
     val.append(_currentToken.getValue());
-    if (match(TokenType.KEYWORD)) {
-      val.append(" ");
-    }
   }
 
   //Used to create lambda functions for matching tokens
@@ -264,15 +268,25 @@ public class Parser
     return (_currentToken.getType() == type);
   }
 
+
   private Tokenizer.Token peekToken() {
+    if (_nextToken == null || _nextToken.getOffset() <= _currentToken.getOffset()) {
+      _nextToken = _tokenizer.nextNonWhiteSpace();
+    }
     return _nextToken;
   }
 
-  //Keep track of next token as well to help classify class keywords
+  private void nextWhiteSpace() {
+    _currentToken = _tokenizer.next();
+  }
+
+  /*Move current token to the next non-whitespace character*/
   private void nextToken()
   {
-    if (_nextToken == null) _nextToken = _tokenizer.next(); //For the first token
-    _currentToken = _nextToken;
-    if (_nextToken.getType() != TokenType.EOF)_nextToken = _tokenizer.next();
+    if (_currentToken == null || _nextToken == null || _currentToken.getOffset() >= _nextToken.getOffset()) {
+      _currentToken = _tokenizer.nextNonWhiteSpace();
+    } else {
+      _currentToken = _nextToken;
+    }
   }
 }
