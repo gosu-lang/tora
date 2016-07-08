@@ -14,7 +14,7 @@
   </parent>
 
   <properties>
-    <gosu.version>1.13.5</gosu.version>  
+    <gosu.version>1-lab-SNAPSHOT</gosu.version>
   </properties>
   
   <dependencies>
