@@ -1,20 +1,17 @@
 package tora.plugin;
 
+import com.sun.xml.internal.rngom.digested.DDataPattern;
 import gw.config.CommonServices;
 import gw.lang.reflect.*;
 import gw.util.GosuExceptionUtil;
 import tora.parser.Parser;
-import tora.parser.tree.ClassNode;
-import tora.parser.tree.ConstructorNode;
-import tora.parser.tree.FunctionNode;
-import tora.parser.tree.PropertyNode;
+import tora.parser.tree.*;
 
 import javax.script.*;
 import java.util.*;
 
 public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
 {
-  private final Parser _parser;
   private final ScriptEngine _engine;
   private IConstructorInfo _constructor;
   private List<IConstructorInfo> _constructorList;
@@ -22,19 +19,18 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
   private List<IPropertyInfo> _propertiesList;
   Map<String, IPropertyInfo> _propertiesMap;
 
-  public JavascriptClassTypeInfo( JavascriptTypeBase javascriptType, tora.parser.Parser parser )
+  public JavascriptClassTypeInfo( JavascriptTypeBase javascriptType, ProgramNode programNode)
   {
     super( javascriptType );
 
-    _parser = parser;
-    ClassNode classNode = parser.parse();
+    ClassNode classNode = programNode.getChildren(ClassNode.class).get(0);
     _constructorList = new ArrayList<>();
     _methods = new MethodList();
     _propertiesList = new ArrayList<>();
     _propertiesMap = new HashMap<String, IPropertyInfo>();
     try {
       _engine = new ScriptEngineManager().getEngineByName("nashorn");
-      _engine.eval(classNode.genCode());
+      _engine.eval(programNode.genCode());
       addConstructor(classNode);
       addMethods(classNode);
       addProperties(classNode);
@@ -44,8 +40,10 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
   }
 
   private void addConstructor(ClassNode classNode) {
+    ConstructorNode constructor = classNode.getFirstChild(ConstructorNode.class);
+    ParameterInfoBuilder[] params = (constructor == null)?null:makeParamList(constructor.getArgs());
     _constructor = new ConstructorInfoBuilder()
-            .withParameters(makeParamList(classNode.getChildren(ConstructorNode.class).get(0).getArgs()))
+            .withParameters(params)
             .withConstructorHandler((args) -> {
               try {
                 StringBuffer buff = new StringBuffer();

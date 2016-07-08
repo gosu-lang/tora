@@ -23,6 +23,7 @@ import jdk.nashorn.internal.runtime.ErrorManager;
 import jdk.nashorn.internal.runtime.ScriptEnvironment;
 import jdk.nashorn.internal.runtime.Source;
 import jdk.nashorn.internal.runtime.options.Options;
+import tora.parser.tree.ProgramNode;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
@@ -38,10 +39,10 @@ public class JavascriptProgramTypeInfo extends BaseTypeInfo implements ITypeInfo
   private final ScriptEngine _engine;
   private final MethodList _methods;
 
-  public JavascriptProgramTypeInfo( JavascriptProgramType javascriptType )
+  public JavascriptProgramTypeInfo(JavascriptProgramType javascriptType, ProgramNode programNode)
   {
     super( javascriptType );
-    String source = javascriptType.getSource();
+    String source = programNode.genCode();
     try
     {
       // init runtime

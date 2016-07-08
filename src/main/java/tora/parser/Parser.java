@@ -7,6 +7,7 @@ public class Parser
 {
   String _src;
   private ClassNode _classNode;
+  private ProgramNode _programNode;
   private Tokenizer _tokenizer;
   private Tokenizer.Token _currentToken, _nextToken;
 
@@ -14,17 +15,21 @@ public class Parser
 
   //Constructor sets the src from which the parser reads
   public Parser(Tokenizer tokenizer){
-      _tokenizer = tokenizer;
+    _tokenizer = tokenizer;
+    _programNode = new ProgramNode();
   }
 
   public boolean isES6Class() {
     return _classNode != null;
   }
 
-  public ClassNode parse() {
+  public ProgramNode parse() {
     nextToken();
+    //Can only import classes at top of program
+    parseImports();
     parseClassStatement();
-    return _classNode;
+    if (!isES6Class() && !match(TokenType.EOF)) _programNode.addChild(parseRestOfProgram());
+    return _programNode;
   }
 
   private void parseClassStatement()
@@ -32,22 +37,38 @@ public class Parser
     if( match(TokenType.CLASS))
     {
       nextToken();
-      if( match(TokenType.IDENTIFIER) )
-      {
-        Tokenizer.Token className = _currentToken;
-        nextToken();
-        _classNode = new ClassNode( className.getValue() );
-        if (match( '{' ))
-        {
-          nextToken();
-          parseClassBody(className.getValue());
-          if (match( '}' )) {
-            Tokenizer.Token end = _currentToken;
-            _classNode.setTokens(className, end);
-          }
-        }
-      }
+      Tokenizer.Token className = _currentToken;
+      skip(match(TokenType.IDENTIFIER));
+      _classNode = new ClassNode( className.getValue() );
+      _programNode.addChild(_classNode);
+      skip(match('{'));
+      parseClassBody(className.getValue());
+      skip(match('}'));
+      Tokenizer.Token end = _currentToken;
+      _classNode.setTokens(className, end);
     }
+  }
+
+  private void parseImports() {
+    while (matchKeyword("import") && !match(TokenType.EOF)) {
+      _programNode.addChild(parseImport());
+      if (match(';')) nextToken(); //TODO: learn semi-colon syntax
+    }
+  }
+
+
+  private ImportNode parseImport() {
+    Tokenizer.Token start = _currentToken;
+    skip(matchKeyword("import"));
+    StringBuilder packageName = new StringBuilder();
+    Matcher matcher = () -> match(TokenType.IDENTIFIER);
+    while (matcher.match()) {
+      concatToken(packageName);
+      if (match(TokenType.IDENTIFIER)) matcher = () -> match('.');
+      if (match('.')) matcher = () -> match(TokenType.IDENTIFIER);
+      nextToken();
+    }
+    return new ImportNode(packageName.toString());
   }
 
   private void parseClassBody(String className)
@@ -166,12 +187,21 @@ public class Parser
     concatToken(val); // '{'
     int curlyCount = 1;
     while (curlyCount > 0 && !match(TokenType.EOF)) {
-      nextToken();
+      nextWhiteSpace();
       if (match('}')) curlyCount--;
       if (match('{')) curlyCount++;
       concatToken(val);
     }
     return new FunctionBodyNode(val.toString());
+  }
+
+  private RestOfProgramNode parseRestOfProgram() {
+    StringBuilder program = new StringBuilder();
+    while (!match(TokenType.EOF)) {
+      concatToken(program);
+      nextWhiteSpace();
+    }
+    return new RestOfProgramNode(program.toString());
   }
 
   //========================================================================================
@@ -180,13 +210,7 @@ public class Parser
 
   /*Concats current token to a string builder*/
   private void concatToken (StringBuilder val) {
-    if (match(TokenType.NUMBER)) {
-      val.append(" ");
-    }
     val.append(_currentToken.getValue());
-    if (match(TokenType.KEYWORD)) {
-      val.append(" ");
-    }
   }
 
   //Used to create lambda functions for matching tokens
@@ -209,7 +233,7 @@ public class Parser
   }
 
   private void error(String errorMsg) {
-    _classNode.addError(new Error(errorMsg));
+    _programNode.addError(new Error(errorMsg));
   }
 
   /*Match single character punctuation*/
@@ -224,8 +248,8 @@ public class Parser
     return match(TokenType.KEYWORD, val);
   }
 
-  /*Matches conditional keywords such as "constructor", which are sometimes keywords within a class and identifiers
-  otherwise*/
+  /*Matches conditional keywords such as "constructor", which are sometimes keywords within a class
+   and identifiers otherwise*/
   private boolean matchClassKeyword(String val)
   {
     if (!match(TokenType.IDENTIFIER, val)) return false;
@@ -244,16 +268,25 @@ public class Parser
     return (_currentToken.getType() == type);
   }
 
+
   private Tokenizer.Token peekToken() {
+    if (_nextToken == null || _nextToken.getOffset() <= _currentToken.getOffset()) {
+      _nextToken = _tokenizer.nextNonWhiteSpace();
+    }
     return _nextToken;
   }
 
-  //Keep track of next token as well to help classify class keywords
+  private void nextWhiteSpace() {
+    _currentToken = _tokenizer.next();
+  }
+
+  /*Move current token to the next non-whitespace character*/
   private void nextToken()
   {
-    if (_nextToken == null) _nextToken = _tokenizer.next(); //For the first token
-    _currentToken = _nextToken;
-    if (match(TokenType.EOF)) error("Unexpected end of input");
-    if (_nextToken.getType() != TokenType.EOF)_nextToken = _tokenizer.next();
+    if (_currentToken == null || _nextToken == null || _currentToken.getOffset() >= _nextToken.getOffset()) {
+      _currentToken = _tokenizer.nextNonWhiteSpace();
+    } else {
+      _currentToken = _nextToken;
+    }
   }
 }

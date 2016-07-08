@@ -3,17 +3,16 @@ package tora.plugin;
 import gw.fs.IFile;
 import gw.lang.reflect.ITypeInfo;
 import tora.parser.Parser;
+import tora.parser.tree.ProgramNode;
 
 public class JavascriptClassType extends JavascriptTypeBase
 {
   private final JavascriptClassTypeInfo _typeinfo;
-  private final Parser _parser;
 
-  public JavascriptClassType( JavascriptPlugin typeloader, String name, IFile jsFile, Parser parser )
+  public JavascriptClassType(JavascriptPlugin typeloader, String name, IFile jsFile, ProgramNode programNode)
   {
     super( typeloader, name, jsFile );
-    _typeinfo = new JavascriptClassTypeInfo( this, parser );
-    _parser = parser;
+    _typeinfo = new JavascriptClassTypeInfo( this, programNode );
   }
 
   @Override

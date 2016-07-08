@@ -8,6 +8,7 @@ import java.io.*;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class TokenizerTest
@@ -253,7 +254,8 @@ public class TokenizerTest
   }
 
   private void assertTokensEq(List<Tokenizer.Token> actual, Tokenizer.Token... expected) {
-    Assert.assertEquals(Arrays.asList(expected), actual);
+    //compare everything ignoring whitespace
+    Assert.assertEquals(Arrays.asList(expected), filterWhitespaceTokens(actual));
   }
 
   /* Reads through file, keeping track of line number, col, and offset, and ensures that when the reader reaches
@@ -273,7 +275,7 @@ public class TokenizerTest
     }
     int lineNumber = 1, col = 1, offset = 0;
     try {
-      for (Tokenizer.Token toke : actual) {
+      for (Tokenizer.Token toke : filterWhitespaceTokens(actual)) {
         //Move reader to the position of the next token
         for (int i = 0; i < toke.getOffset() - offset; i++) {
           col++;
@@ -300,6 +302,12 @@ public class TokenizerTest
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  public List <Tokenizer.Token> filterWhitespaceTokens(List <Tokenizer.Token> tokens) {
+    return tokens.stream()
+            .filter(t->t.getType() != TokenType.WHITESPACE)
+            .collect(Collectors.toList());
   }
 
   private Tokenizer.Token t( TokenType type, String val )

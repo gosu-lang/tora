@@ -17,8 +17,8 @@ public class ConstructorNode extends FunctionNode
   public String genCode()
   {
     String functionBodyCode = getChildren().isEmpty()?"{}":getChildren().get(0).genCode();
-    return   "function " + _name + "(" + getArgs() + ")" +
-            functionBodyCode.replaceFirst("[{]", "{ _classCallCheck(this," + _name +
+    return   "function " + getName() + "(" + getArgs() + ")" +
+            functionBodyCode.replaceFirst("[{]", "{ _classCallCheck(this," + getName() +
             ");" );
   }
 
@@ -26,6 +26,6 @@ public class ConstructorNode extends FunctionNode
   public boolean equals(Object obj) {
     if (!(obj instanceof ConstructorNode)) return false;
     ConstructorNode node = (ConstructorNode) obj;
-    return _name.equals(node.getName());
+    return getName().equals(node.getName());
   }
 }

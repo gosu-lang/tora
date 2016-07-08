@@ -19,6 +19,7 @@ public enum TokenType {
     STRING,
     PUNCTUATION,
     OPERATOR,
+    WHITESPACE,
     COMMENT,
     ERROR,
     EOF;
