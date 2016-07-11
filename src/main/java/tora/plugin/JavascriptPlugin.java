@@ -5,6 +5,7 @@ import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.RefreshKind;
+import gw.lang.reflect.RefreshRequest;
 import gw.lang.reflect.TypeLoaderBase;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.module.IModule;
@@ -151,15 +152,43 @@ public class JavascriptPlugin extends TypeLoaderBase
   }
 
   @Override
-  public void refreshedNamespace( String s, IDirectory iDirectory, RefreshKind refreshKind )
+  public void refreshedNamespace( String namespace, IDirectory iDirectory, RefreshKind kind )
   {
-      //TODO cgross - implement
+    clear();
+    if( _namespaces != null ) {
+      if( kind == RefreshKind.CREATION ) {
+        _namespaces.add( namespace );
+      }
+      else if( kind == RefreshKind.DELETION ) {
+        _namespaces.remove( namespace );
+      }
+    }
   }
 
   @Override
-  public boolean hasNamespace( String s )
+  protected void refreshedImpl() {
+    clear();
+  }
+
+  @Override
+  public RefreshKind refreshedFile( IFile file, String[] types, RefreshKind kind ) {
+    clear();
+    return kind;
+  }
+
+  @Override
+  protected void refreshedTypesImpl( RefreshRequest request ) {
+    clear();
+  }
+
+  private void clear() {
+    _jsSources.clear();
+  }
+
+  @Override
+  public boolean hasNamespace( String namespace )
   {
-    return getAllNamespaces().contains(s);
+    return getAllNamespaces().contains( namespace );
   }
 
   @Override
