@@ -9,3 +9,14 @@ machine:
 
   environment:
     TERM: dumb
+
+dependencies:
+  override:
+    - mvn -B dependency:go-offline
+
+test:
+  override:
+    - mvn -B integration-test
+  post:
+    - mkdir -p $CIRCLE_TEST_REPORTS/junit/
+    - find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;

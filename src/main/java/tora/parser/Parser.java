@@ -88,8 +88,6 @@ public class Parser
         _classNode.addChild(parseProperty(className));
       } else if (match(TokenType.IDENTIFIER)) {
         _classNode.addChild(parseFunction(className));
-      } else if (match(TokenType.COMMENT)) {
-        nextToken(); //ignore comments for now
       } else {
         error("Unexpected token: " + _currentToken.toString());
         nextToken();
