@@ -120,11 +120,13 @@ public class Tokenizer
       /*Forward slash will either result in a single line comment, multiline comment, or a operator token*/
       switch (peek()) {
         case '*':
-          return consumeMultilineComment();
+          ret =  consumeMultilineComment();
+          break;
         case '/':
-          return consumeSingleLineComment();
+          ret = consumeSingleLineComment();
+          break;
         default:
-          return consumeOperator();
+          ret =  consumeOperator();
       }
     } else if (TokenType.isPartOfOperator(_ch)) {
       ret = consumeOperator();

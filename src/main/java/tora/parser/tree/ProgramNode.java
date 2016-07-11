@@ -36,11 +36,10 @@ public class ProgramNode extends Node
     //Should be limited to one class per program node
     ClassNode classNode = getFirstChild(ClassNode.class);
     if (classNode != null) code.append("\n").append(classNode.genCode());
-
+    
     RestOfProgramNode restOfProgramNode = getFirstChild(RestOfProgramNode.class);
     if (restOfProgramNode != null) code.append("\n").append(restOfProgramNode.genCode());
 
-    System.out.println(code.toString());
     return code.toString();
   }
 }

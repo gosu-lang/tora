@@ -72,12 +72,12 @@ public class TokenizerTest
   @Test
   public void simpleCommentTest()
   {
-    assertTokensEq(tokenize("//donald"),t(TokenType.COMMENT, "//donald"));
-    assertTokensEq(tokenize("/*insurance is fun*/"),t(TokenType.COMMENT, "/*insurance is fun*/"));
+    //Throw away any comment tokens
+    assertTokensEq(tokenize("//donald"));
+    assertTokensEq(tokenize("/*insurance is fun*/"));
     assertTokensEq(tokenize("x+/*comments are fun*/5"),
             t(TokenType.IDENTIFIER, "x"),
             t(TokenType.OPERATOR, "+"),
-            t(TokenType.COMMENT, "/*comments are fun*/"),
             t(TokenType.NUMBER, "5"));
 
   }
