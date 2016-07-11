@@ -1,14 +1,16 @@
 package tora;
 
 import gw.config.CommonServices;
-import gw.lang.parser.*;
+import gw.lang.parser.ExternalSymbolMapForMap;
+import gw.lang.parser.IGosuProgramParser;
+import gw.lang.parser.IParseResult;
+import gw.lang.parser.ParserOptions;
+import gw.lang.parser.StandardSymbolTable;
 import gw.util.GosuExceptionUtil;
-import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.script.ScriptException;
-
 import java.util.HashMap;
 
 import static junit.framework.TestCase.assertEquals;
@@ -32,6 +34,11 @@ public class ImportingJavaClassTest
   }
 
   @Test
+  public void testEval() throws ScriptException {
+    assertEquals("foo", eval("return \"foo\""));
+  }
+  
+  @Test
   public void testJavaClassImport() throws ScriptException {
     assertEquals(42, eval("return ImportClass.javaFoo()"));
     assertEquals("hello", eval("var imported = new ImportClass(); return imported.javaBar()"));
@@ -48,7 +55,6 @@ public class ImportingJavaClassTest
     assertEquals(43, eval("return ImportProgram.gosuFoo()"));
     assertEquals(42, eval("return ImportProgram.javaFoo()"));
   }
-
 
   private Object eval( String program )
   {
