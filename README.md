@@ -14,123 +14,124 @@ Variables
 
 Functions
 
-var hello = function() {
-    print("Hello");
-}
+    var hello = function() {
+        print("Hello");
+    }
 
 
 ## Javascript Class Support
 
----------------------------------------------------------
----------------------------------------------------------
+
 Javascript: foo.js
-
-class Foo {
-
-    //Constructor
-    constructor(a) {
-        this.foo = a;
-        this._bars = 5;
-    }
-
-    //Methods
-    bar() {
-        return this.foo * 2;
-    }
-
-    baz(a,b) {
-        return a+b + this.foo;
-    }
-
-    //Static Method
-    static hello() {
-        return "hello";
-    }
-
-    //Properties
-    get bars() {
-        return this._bars*2;
-    }
-
-    set bars(a) {
-        this._bars = a;
-    }
-
-}
-
 ---------------------------------------------------------
----------------------------------------------------------
+    class Foo {
+
+        //Constructor
+        constructor(a) {
+            this.foo = a;
+            this._bars = 5;
+        }
+
+        //Methods
+        bar() {
+            return this.foo * 2;
+        }
+
+        baz(a,b) {
+            return a+b + this.foo;
+        }
+
+        //Static Method
+        static hello() {
+            return "hello";
+        }
+
+        //Properties
+        get bars() {
+            return this._bars*2;
+        }
+
+        set bars(a) {
+            this._bars = a;
+        }
+
+    }
+
+
+
 
 TODO: Describe basic class syntax support
 
 ### Accessing Javascript Classes from Gosu
 
-Using class foo from above.
----------------------------------------------------------
----------------------------------------------------------
+Javascript classes can be accessed using the same syntax as Gosu classes.
+
 Gosu:
-
-var foo = new Foo(10);
-print(foo.bar()); // 20
-print(foo.bars); // 5
-
-foo.bars = 20;
-print(foo.bars) // 40
-print(Foo.hello()) // Hello
-
 ---------------------------------------------------------
----------------------------------------------------------
+
+    var foo = new Foo(10);
+    print(foo.bar()); // 20
+    print(foo.bars); // 5
+
+    foo.bars = 20;
+    print(foo.bars) // 40
+    print(Foo.hello()) // Hello
+
+
+
 ### Accessing Gosu & Java Classes from Javascript
 
-Import
----------------------------------------------------------
----------------------------------------------------------
+The Import statement is used to extend gosu and java classes with javascript methods.
+
 Javascript: hello.js
-
-import java.util.ArrayList;
-
-function hello() {
-    var arrlist = new ArrayList();
-    arrlist.add(1);
-    arrlist.add(2);
-    arrlist.add(3);
-    print(arrlist.toArray(new Integer[arrlist.size()]));
-}
-
 ---------------------------------------------------------
+
+    import java.util.ArrayList;
+
+    function hello() {
+        var arrlist = new ArrayList();
+        arrlist.add(1);
+        arrlist.add(2);
+        arrlist.add(3);
+        print(arrlist.toArray(new Integer[arrlist.size()]));
+    }
+
+
 Gosu:
-
-hello.hello(); //prints [1,2,3]
-
 ---------------------------------------------------------
----------------------------------------------------------
+    hello.hello(); //prints [1,2,3]
+
+
+
 
 TODO import statement examples
 
 ### Extending Gosu & Java Classes from Javascript
----------------------------------------------------------
----------------------------------------------------------
-import java.util.ArrayList;
 
-class sizePrints extends ArrayList {
-    constructor() {
-        super();
+
+Javascript
+---------------------------------------------------------
+
+    import java.util.ArrayList;
+
+    class sizePrints extends ArrayList {
+        constructor() {
+            super();
+        }
+
+        size () {
+            print(super.size());
+        }
     }
 
-    size () {
-        print(super.size());
-    }
-}
----------------------------------------------------------
 Gosu:
+---------------------------------------------------------
+    var sizePrintsArrayList = new sizePrints();
+    sizePrintsArrayList.add(1);
+    sizePrintsArrayList.add(2);
+    sizePrintsArrayList.add(3);
+    sizePrintsArrayList.size(); // Prints 3
 
-var sizePrintsArrayList = new sizePrints();
-sizePrintsArrayList.add(1);
-sizePrintsArrayList.add(2);
-sizePrintsArrayList.add(3);
-sizePrintsArrayList.size(); // Prints 3
----------------------------------------------------------
----------------------------------------------------------
 
 
 ## Javascript Expression Support
