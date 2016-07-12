@@ -4,10 +4,13 @@ import com.sun.xml.internal.rngom.digested.DDataPattern;
 import gw.config.CommonServices;
 import gw.lang.reflect.*;
 import gw.util.GosuExceptionUtil;
+import jdk.nashorn.api.scripting.JSObject;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import tora.parser.Parser;
 import tora.parser.tree.*;
 
 import javax.script.*;
+import java.lang.reflect.Method;
 import java.util.*;
 
 public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
@@ -16,6 +19,7 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
   private IConstructorInfo _constructor;
   private List<IConstructorInfo> _constructorList;
   private final MethodList _methods;
+  private ProgramNode _programNode;
   private List<IPropertyInfo> _propertiesList;
   Map<String, IPropertyInfo> _propertiesMap;
 
@@ -23,7 +27,8 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
   {
     super( javascriptType );
 
-    ClassNode classNode = programNode.getChildren(ClassNode.class).get(0);
+    _programNode = programNode;
+    ClassNode classNode = programNode.getFirstChild(ClassNode.class);
     _constructorList = new ArrayList<>();
     _methods = new MethodList();
     _propertiesList = new ArrayList<>();
@@ -45,19 +50,12 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
     _constructor = new ConstructorInfoBuilder()
             .withParameters(params)
             .withConstructorHandler((args) -> {
-              try {
-                StringBuffer buff = new StringBuffer();
-                for(int i  = 0 ; i < args.length ; i++) {
-                  buff.append(args[i]);
-                  if(i != args.length - 1) {
-                    buff.append(",");
-                  }
-
+                try {
+                  JSObject classObject =  (ScriptObjectMirror) _engine.eval(classNode.getName());
+                  return classObject.newObject(args);
+                } catch (ScriptException e) {
+                  throw GosuExceptionUtil.forceThrow( e );
                 }
-                return _engine.eval("new " + classNode.getName() + "("+ buff.toString()+ ")");
-              } catch (ScriptException e) {
-                throw GosuExceptionUtil.forceThrow( e );
-              }
             }).build(this);
     _constructorList.add(_constructor);
   }
@@ -88,8 +86,13 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
     }
   }
 
-  private void addMethods(ClassNode classNode) {
+  private void addMethods(ClassNode classNode) throws ScriptException {
     Object classObject = _engine.get(classNode.getName());
+//    IType superType = TypeSystem.getByFullName();
+//
+//    for (IMethodInfo method : superType.getTypeInfo().getMethods()) {
+//       System.out.println(method.toString());
+//    }
 
     for (FunctionNode node : classNode.getChildren(FunctionNode.class)) {
       _methods.add(new MethodInfoBuilder()

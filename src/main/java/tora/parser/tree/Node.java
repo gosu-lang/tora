@@ -30,7 +30,7 @@ public abstract class Node
   LinkedList<T> lst = new LinkedList<>();
   for( Node child : _children )
   {
-    if( clazz.isInstance( child ) )
+    if(child.getClass().equals(clazz))
     {
       lst.add((T) child);
     }
@@ -41,7 +41,7 @@ public abstract class Node
   public <T extends Node> T getFirstChild (Class<T> clazz) {
     for( Node child : _children )
     {
-      if( clazz.isInstance( child ) )
+      if(child.getClass().equals(clazz))
       {
         return (T) child;
       }
