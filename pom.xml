@@ -72,7 +72,7 @@
             </manifest>
             <manifestEntries>
               <Gosu-Typeloaders>tora.plugin.JavascriptPlugin</Gosu-Typeloaders>
-              <Contains-Sources>gs, gsx, gst</Contains-Sources>
+              <Contains-Sources>js</Contains-Sources>
             </manifestEntries>
           </archive>
         </configuration>

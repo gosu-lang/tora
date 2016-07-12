@@ -5,6 +5,7 @@ import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.RefreshKind;
+import gw.lang.reflect.RefreshRequest;
 import gw.lang.reflect.TypeLoaderBase;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.module.IModule;
@@ -32,47 +33,75 @@ public class JavascriptPlugin extends TypeLoaderBase
   private static final String JS_EXTENSION = ".js";
   private Set<String> _namespaces;
 
-  private final LockingLazyVar<Map<String, IFile>> _jsSources = new LockingLazyVar<Map<String, IFile>>() {
+  private final LockingLazyVar<Map<IFile, String>> _fileToName = new LockingLazyVar<Map<IFile, String>>()
+  {
     @Override
-    protected Map<String, IFile> init() {
-      Map<String, IFile> result = new HashMap<>();
-      for(Pair<String, IFile> p : findAllFilesByExtension( JS_EXTENSION)) {
+    protected Map<IFile, String> init()
+    {
+      Map<IFile, String> result = new HashMap<>();
+      for( Pair<String, IFile> p : findAllFilesByExtension( JS_EXTENSION ) )
+      {
         IFile file = p.getSecond();
         String fileName = p.getFirst();
-        String fqn = fileName.substring(0, fileName.length() - JS_EXTENSION.length()).replace('/', '.');
-        result.put(fqn, file);
+        String fqn = fileName.substring( 0, fileName.length() - JS_EXTENSION.length() ).replace( '/', '.' );
+        result.put( file, fqn );
+      }
+      return result;
+    }
+  };
+  private final LockingLazyVar<Map<String, IFile>> _nameToFile = new LockingLazyVar<Map<String, IFile>>()
+  {
+    @Override
+    protected Map<String, IFile> init()
+    {
+      Map<String, IFile> result = new HashMap<>();
+      for( Pair<String, IFile> p : findAllFilesByExtension( JS_EXTENSION ) )
+      {
+        IFile file = p.getSecond();
+        String fileName = p.getFirst();
+        String fqn = fileName.substring( 0, fileName.length() - JS_EXTENSION.length() ).replace( '/', '.' );
+        result.put( fqn, file );
       }
       return result;
     }
   };
 
-  public List<Pair<String, IFile>> findAllFilesByExtension(String extension) {
+  public List<Pair<String, IFile>> findAllFilesByExtension( String extension )
+  {
     List<Pair<String, IFile>> results = new ArrayList<>();
 
-    for (IDirectory sourceEntry : _module.getSourcePath()) {
-      if (sourceEntry.exists()) {
-        String prefix = sourceEntry.getName().equals(IModule.CONFIG_RESOURCE_PREFIX) ? IModule.CONFIG_RESOURCE_PREFIX : "";
-        addAllLocalResourceFilesByExtensionInternal(prefix, sourceEntry, extension, results);
+    for( IDirectory sourceEntry : _module.getSourcePath() )
+    {
+      if( sourceEntry.exists() )
+      {
+        String prefix = sourceEntry.getName().equals( IModule.CONFIG_RESOURCE_PREFIX ) ? IModule.CONFIG_RESOURCE_PREFIX : "";
+        addAllLocalResourceFilesByExtensionInternal( prefix, sourceEntry, extension, results );
       }
     }
     return results;
   }
 
-  private void addAllLocalResourceFilesByExtensionInternal(String relativePath, IDirectory dir, String extension, List<Pair<String, IFile>> results) {
-    List<IDirectory> excludedPath = Arrays.asList( _module.getFileRepository().getExcludedPath());
-    if ( excludedPath.contains( dir )) {
+  private void addAllLocalResourceFilesByExtensionInternal( String relativePath, IDirectory dir, String extension, List<Pair<String, IFile>> results )
+  {
+    List<IDirectory> excludedPath = Arrays.asList( _module.getFileRepository().getExcludedPath() );
+    if( excludedPath.contains( dir ) )
+    {
       return;
     }
-    if (!CommonServices.getPlatformHelper().isPathIgnored( relativePath)) {
-      for (IFile file : dir.listFiles()) {
-        if (file.getName().endsWith(extension)) {
-          String path = appendResourceNameToPath(relativePath, file.getName());
-          results.add(new Pair<String, IFile>(path, file));
+    if( !CommonServices.getPlatformHelper().isPathIgnored( relativePath ) )
+    {
+      for( IFile file : dir.listFiles() )
+      {
+        if( file.getName().endsWith( extension ) )
+        {
+          String path = appendResourceNameToPath( relativePath, file.getName() );
+          results.add( new Pair<String, IFile>( path, file ) );
         }
       }
-      for (IDirectory subdir : dir.listDirs()) {
-        String path = appendResourceNameToPath(relativePath, subdir.getName());
-        addAllLocalResourceFilesByExtensionInternal(path, subdir, extension, results);
+      for( IDirectory subdir : dir.listDirs() )
+      {
+        String path = appendResourceNameToPath( relativePath, subdir.getName() );
+        addAllLocalResourceFilesByExtensionInternal( path, subdir, extension, results );
       }
     }
   }
@@ -94,13 +123,13 @@ public class JavascriptPlugin extends TypeLoaderBase
 
   public JavascriptPlugin( IModule currentModule )
   {
-    super(currentModule);
+    super( currentModule );
   }
 
   @Override
   public IType getType( String name )
   {
-    IFile iFile = _jsSources.get().get( name );
+    IFile iFile = _nameToFile.get().get( name );
 
     if( iFile != null )
     {
@@ -111,10 +140,14 @@ public class JavascriptPlugin extends TypeLoaderBase
         if( parser.isES6Class() )
         {
           return new JavascriptClassType( this, name, iFile, programNode );
-        } else  {
-          return new JavascriptProgramType(this, name, iFile, programNode);
         }
-      } catch (IOException e) {
+        else
+        {
+          return new JavascriptProgramType( this, name, iFile, programNode );
+        }
+      }
+      catch( IOException e )
+      {
 
       }
     }
@@ -126,11 +159,14 @@ public class JavascriptPlugin extends TypeLoaderBase
   @Override
   public Set<? extends CharSequence> getAllNamespaces()
   {
-    if( _namespaces == null ) {
-      try {
+    if( _namespaces == null )
+    {
+      try
+      {
         _namespaces = TypeSystem.getNamespacesFromTypeNames( getAllTypeNames(), new HashSet<String>() );
       }
-      catch( NullPointerException e ) {
+      catch( NullPointerException e )
+      {
         //!! hack to get past dependency issue with tests
         return Collections.emptySet();
       }
@@ -151,20 +187,72 @@ public class JavascriptPlugin extends TypeLoaderBase
   }
 
   @Override
-  public void refreshedNamespace( String s, IDirectory iDirectory, RefreshKind refreshKind )
+  public boolean handlesFile( IFile file )
   {
-      //TODO cgross - implement
+    return JS_EXTENSION.substring( 1 ).equals( file.getExtension() );
+  }
+
+  public String[] getTypesForFile( IFile file )
+  {
+    String typeName = _fileToName.get().get( file );
+    if( typeName != null )
+    {
+      return new String[]{typeName};
+    }
+    return NO_TYPES;
   }
 
   @Override
-  public boolean hasNamespace( String s )
+  public void refreshedNamespace( String namespace, IDirectory iDirectory, RefreshKind kind )
   {
-    return getAllNamespaces().contains(s);
+    clear();
+    if( _namespaces != null )
+    {
+      if( kind == RefreshKind.CREATION )
+      {
+        _namespaces.add( namespace );
+      }
+      else if( kind == RefreshKind.DELETION )
+      {
+        _namespaces.remove( namespace );
+      }
+    }
+  }
+
+  @Override
+  protected void refreshedImpl()
+  {
+    clear();
+  }
+
+  @Override
+  public RefreshKind refreshedFile( IFile file, String[] types, RefreshKind kind )
+  {
+    clear();
+    return kind;
+  }
+
+  @Override
+  protected void refreshedTypesImpl( RefreshRequest request )
+  {
+    clear();
+  }
+
+  private void clear()
+  {
+    _nameToFile.clear();
+    _fileToName.clear();
+  }
+
+  @Override
+  public boolean hasNamespace( String namespace )
+  {
+    return getAllNamespaces().contains( namespace );
   }
 
   @Override
   public Set<String> computeTypeNames()
   {
-    return _jsSources.get().keySet();
+    return _nameToFile.get().keySet();
   }
 }
