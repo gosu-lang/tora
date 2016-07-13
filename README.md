@@ -7,7 +7,6 @@ Tora is a [Gosu](http://gosu-lang.github.io/) extension library that allows for 
 The library supports the use of javascript programs from Gosu, the use of ES6-flavored javascript classes from Gosu, the use of Gosu (and Java) classes from javascript, as well as the creation of type-safe javascript expressions for use in Java or Gosu, as a scripting layer.
 
 This library is sponsored and supported by [Guidewire Software](http://www.guidewire.com)
-
 ## Javascript Program Support
 
 Variables
@@ -23,7 +22,7 @@ Functions
 
 
 Javascript: foo.js
----------------------------------------------------------
+
     class Foo {
 
         //Constructor
@@ -67,8 +66,6 @@ TODO: Describe basic class syntax support
 Javascript classes can be accessed using the same syntax as Gosu classes.
 
 Gosu:
----------------------------------------------------------
-
     var foo = new Foo(10);
     print(foo.bar()); // 20
     print(foo.bars); // 5
@@ -84,7 +81,7 @@ Gosu:
 The Import statement is used to extend gosu and java classes with javascript methods.
 
 Javascript: hello.js
----------------------------------------------------------
+
 
     import java.util.ArrayList;
 
@@ -98,7 +95,7 @@ Javascript: hello.js
 
 
 Gosu:
----------------------------------------------------------
+
     hello.hello(); //prints [1,2,3]
 
 
@@ -110,7 +107,7 @@ TODO import statement examples
 
 
 Javascript
----------------------------------------------------------
+
 
     import java.util.ArrayList;
 
@@ -125,7 +122,7 @@ Javascript
     }
 
 Gosu:
----------------------------------------------------------
+
     var sizePrintsArrayList = new sizePrints();
     sizePrintsArrayList.add(1);
     sizePrintsArrayList.add(2);
