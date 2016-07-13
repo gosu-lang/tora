@@ -66,6 +66,7 @@ TODO: Describe basic class syntax support
 Javascript classes can be accessed using the same syntax as Gosu classes.
 
 Gosu:
+q
     var foo = new Foo(10);
     print(foo.bar()); // 20
     print(foo.bars); // 5
