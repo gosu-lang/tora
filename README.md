@@ -20,6 +20,8 @@ Functions
 
 ## Javascript Class Support
 
+Javascript classes are exposed as regular classes in Gosu. They have the same functionallity as Java classes,
+including constructors, methods, static methods, and properties.
 
 Javascript: foo.js
 
@@ -40,7 +42,7 @@ Javascript: foo.js
             return a+b + this.foo;
         }
 
-        //Static Method
+        //Static Methods
         static hello() {
             return "hello";
         }
@@ -66,7 +68,7 @@ TODO: Describe basic class syntax support
 Javascript classes can be accessed using the same syntax as Gosu classes.
 
 Gosu:
-q
+
     var foo = new Foo(10);
     print(foo.bar()); // 20
     print(foo.bars); // 5
@@ -129,7 +131,6 @@ Gosu:
     sizePrintsArrayList.add(2);
     sizePrintsArrayList.add(3);
     sizePrintsArrayList.size(); // Prints 3
-
 
 
 ## Javascript Expression Support
