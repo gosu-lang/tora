@@ -50,12 +50,8 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
     _constructor = new ConstructorInfoBuilder()
             .withParameters(params)
             .withConstructorHandler((args) -> {
-                try {
-                  JSObject classObject =  (ScriptObjectMirror) _engine.eval(classNode.getName());
-                  return classObject.newObject(args);
-                } catch (ScriptException e) {
-                  throw GosuExceptionUtil.forceThrow( e );
-                }
+                JSObject classObject =  (ScriptObjectMirror) _engine.get(classNode.getName());
+                return classObject.newObject(args);
             }).build(this);
     _constructorList.add(_constructor);
   }
@@ -87,28 +83,49 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
   }
 
   private void addMethods(ClassNode classNode) throws ScriptException {
-    Object classObject = _engine.get(classNode.getName());
-//    IType superType = TypeSystem.getByFullName();
-//
-//    for (IMethodInfo method : superType.getTypeInfo().getMethods()) {
-//       System.out.println(method.toString());
-//    }
+    ScriptObjectMirror classObject = (ScriptObjectMirror) _engine.get(classNode.getName());
 
     for (FunctionNode node : classNode.getChildren(FunctionNode.class)) {
+      if (!node.isOverride()) {
+        _methods.add(new MethodInfoBuilder()
+                .withName(node.getName())
+                .withStatic(node.isStatic())
+                .withParameters(makeParamList(node.getArgs()))
+                .withReturnType(TypeSystem.getByFullName("dynamic.Dynamic"))
+                .withCallHandler((ctx, args) -> {
+                  try {
+                    if (node.isStatic()) ctx = classObject;
+                    Object o = ((Invocable) _engine).invokeMethod(ctx, node.getName(), args);
+                    return o;
+                  } catch (Exception e) {
+                    throw GosuExceptionUtil.forceThrow(e);
+                  }
+
+                })
+                .build(this));
+      }
+    }
+
+    //Add inherited methods if the class extends
+    String packageName = _programNode.getPackageFromClassName(classNode.getSuperClass());
+    if (packageName == null) return;
+    IType superType = TypeSystem.getByFullName(packageName);
+    if (superType == null) return;
+    for (IMethodInfo method : superType.getTypeInfo().getMethods()) {
       _methods.add(new MethodInfoBuilder()
-              .withName(node.getName())
-              .withStatic(node.isStatic())
-              .withParameters(makeParamList(node.getArgs()))
-              .withReturnType(TypeSystem.getByFullName("dynamic.Dynamic"))
+              .withName(method.getDisplayName())
+              .withParameters(makeParamList(method))
+              .withStatic(method.isStatic())
+              .withReturnType(method.getReturnType())
               .withCallHandler((ctx, args) -> {
                 try {
-                  if (node.isStatic()) ctx = classObject;
-                  Object o = ((Invocable) _engine).invokeMethod(ctx, node.getName(), args);
-                  return o;
+                  //Call the method on the superclass (which exists as a property object for now)
+                  ScriptObjectMirror context = (ScriptObjectMirror) ctx;
+                  Object superClass = context.callMember("_getSuperClass");
+                  return method.getCallHandler().handleCall(superClass, args);
                 } catch (Exception e) {
                   throw GosuExceptionUtil.forceThrow(e);
                 }
-
               })
               .build(this));
     }
@@ -120,6 +137,16 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
     for (int i = 0; i < argList.length; i++) {
       parameterInfoBuilders[i] = new ParameterInfoBuilder().withName(argList[i])
               .withDefValue(CommonServices.getGosuIndustrialPark().getNullExpressionInstance())
+              .withType(TypeSystem.getByFullName("dynamic.Dynamic"));
+    }
+    return parameterInfoBuilders;
+  }
+
+  private ParameterInfoBuilder[] makeParamList (IMethodInfo method) {
+    IParameterInfo[]  params = method.getParameters();
+    ParameterInfoBuilder[] parameterInfoBuilders = new ParameterInfoBuilder[params.length];
+    for (int i = 0; i < params.length; i++) {
+      parameterInfoBuilders[i] = new ParameterInfoBuilder().like(params[i])
               .withType(TypeSystem.getByFullName("dynamic.Dynamic"));
     }
     return parameterInfoBuilders;

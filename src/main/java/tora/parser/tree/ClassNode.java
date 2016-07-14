@@ -3,14 +3,12 @@ package tora.parser.tree;
 
 import tora.parser.Tokenizer;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ClassNode extends Node {
-    /*Code segments taken from babel.js*/
+    /*Boiler plate code segments taken from babel.js*/
+    //Used for defining object properties
     private static final String CREATE_CLASS = "var _createClass = function () { " +
         "function defineProperties(target, props) { for (var i = 0; i < props.length; i++) " +
         "{ var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; " +
@@ -20,42 +18,93 @@ public class ClassNode extends Node {
         "defineProperties(Constructor.prototype, protoProps); if (staticProps) " +
         "defineProperties(Constructor, staticProps); return Constructor; }; }();\n";
 
+    //Used to make sure classes can not be called as a function
     private static final String CLASS_CALL_CHECK = "function _classCallCheck(instance, Constructor) { " +
         "if (!(instance instanceof Constructor)) { " +
         "throw new TypeError(\"Cannot call a class as a function\") } }\n";
 
+    //name of generated supertype object
+    public static final String SUPERTYPE_OBJECT = "_superClassObject";
+
+    private String _superClass = null;
+
     public ClassNode(String name ) {
         super(name);
     }
+
+    public ClassNode(String name, String superClass ) {
+        super(name);
+        _superClass = superClass;
+    }
+
+    public void setSuperClass(String superClass) {
+        _superClass = superClass;
+    }
+    public String getSuperClass() {
+        return  _superClass;
+    }
+
 
     @Override
     public String genCode() {
         StringBuilder code = new StringBuilder(CLASS_CALL_CHECK); //Makes sure constructor is called correctly
         if (!getChildren(PropertyNode.class).isEmpty()) code.append(CREATE_CLASS); //Defines getters and setters
 
-        code.append("var ").append(getName()).append(" = function() { ");
+        code.append("var ").append(getName()).append(" = function(")
+                .append((getSuperClass() == null? "" : "_" + getSuperClass()))
+                .append(") { ");
 
+        String constructorCode;
         if (getChildren(ConstructorNode.class).isEmpty()) {
             //Gen default constructor if no child found
-            code.append("\n\t").append(new ConstructorNode(getName() ).genCode());
+            constructorCode = "\n\t" + new ConstructorNode(getName() ).genCode();
         } else {
             //Should only have one constructor
-            code.append("\n\t").append(getChildren(ConstructorNode.class).get(0).genCode());
+            constructorCode = "\n\t" + getFirstChild(ConstructorNode.class).genCode();
+        }
+
+        //If superclass exists, instantiate superclass object inside constructor
+        if (getSuperClass() != null) {
+            StringBuilder superClassObjectCode = new StringBuilder();
+            String superClassArg = "_" + getSuperClass();
+            //Create extended superclass object
+            superClassObjectCode.append("\n\tvar ").append(SUPERTYPE_OBJECT)
+                    .append("= new (Java.extend(").append(superClassArg).append("))(){")
+                    .append(genOverrideFunctionCode(getChildren(FunctionNode.class))) //Add overridden methods
+                    .append("};");
+            //Create property reference for the superclass object
+            superClassObjectCode.append("\n\t").append("this.").append(SUPERTYPE_OBJECT)
+                    .append(" = ").append(SUPERTYPE_OBJECT).append(";");
+            constructorCode = constructorCode.replaceFirst("[{]", "{" + superClassObjectCode.toString());
+        }
+        code.append(constructorCode);
+
+        //Create method for getting super object
+        if (getSuperClass() != null) {
+            code.append("\n\t").append(getName()).append(".prototype._getSuperClass = function _getSuperClass(){" +
+                    "return this._superClassObject}");
         }
 
         for (FunctionNode node : getChildren(FunctionNode.class)) {
-            //generate for function nodes only (not nodes that extend functionNode such as PropertyNode)
-            if (node.getClass().equals(FunctionNode.class)) {
-                code.append("\n\t").append(node.genCode());
-            }
+            if (!node.isOverride()) code.append("\n\t").append(node.genCode());
         }
 
         code.append(genPropertyObjectCode(getChildren(PropertyNode.class)));
 
-        code.append("\n\treturn " + getName() + ";\n}();");
+        code.append("\n\treturn " + getName() + ";\n}(")
+                .append((getSuperClass() == null? "" : getSuperClass())) //Possibly give superclass as arg
+                .append(");");
 
         return code.toString();
     }
+
+    private String genOverrideFunctionCode(List<FunctionNode> functionNodes) {
+        return String.join(",", functionNodes.stream()
+                .filter(node -> node.isOverride())
+                .map(node -> node.genCode())
+                .collect(Collectors.toList()));
+    }
+
 
     private String genPropertyObjectCode (List<PropertyNode> propertyNodes) {
         //Wrapper to hold getters and setters for the same property
@@ -117,5 +166,12 @@ public class ClassNode extends Node {
             propCode += nonStaticProps + "," + staticProps + ");";
         }
         return  propCode;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof ClassNode)) return false;
+        ClassNode node = (ClassNode) obj;
+        return getName().equals(node.getName()) && getSuperClass().equals(node.getSuperClass());
     }
 }

@@ -9,6 +9,7 @@ public class FunctionNode extends Node
   private String _args = "";
   private String _className;
   private Boolean _isStatic = false;
+  private Boolean _isOverride = false;
 
   public FunctionNode( String name )
   {
@@ -46,6 +47,15 @@ public class FunctionNode extends Node
     _isStatic = isStatic;
   }
 
+  public boolean isOverride() {
+    return _isOverride;
+  }
+
+  public void setOverride(boolean isOverride) {
+    _isOverride = isOverride;
+  }
+
+
   public String getArgs() {
     return _args;
   }
@@ -58,7 +68,11 @@ public class FunctionNode extends Node
   public String genCode()
   {
     String functionBodyCode = getChildren().isEmpty()?"{}":getChildren().get(0).genCode();
-    return  _className + (_isStatic?".":".prototype.") + //If static, can be method of class directly
+    //If it's an override function, give as key value pair for Java.extend codegen from ClassNode
+    if (isOverride()) {
+      return getName() + ": function(" + _args + ")" + functionBodyCode;
+    }
+    else return _className + (_isStatic?".":".prototype.") + //If static, can be method of class directly
             getName() + " = " + "function" + "(" + _args + ")" + functionBodyCode;
   }
 

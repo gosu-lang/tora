@@ -35,14 +35,16 @@ public class CodeGenTest
   {
     Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
             "var Foo = function() { \n" +
-            "\tfunction Foo(){ _classCallCheck(this,Foo);}\n" +
+            "\tfunction Foo(){\n" +
+            "\t _classCallCheck(this,Foo);}\n" +
             "\treturn Foo;\n" +
             "}();", new ClassNode("Foo").genCode());
   }
 
   @Test
   public void testSimpleConstructorNode() {
-    Assert.assertEquals("function Foo(){ _classCallCheck(this,Foo);}",
+    Assert.assertEquals("function Foo(){\n" +
+                    "\t _classCallCheck(this,Foo);}",
             new ConstructorNode("Foo").genCode());}
 
   @Test
@@ -82,7 +84,8 @@ public class CodeGenTest
     Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
             "var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n" +
             "var DemoClass = function() { \n" +
-            "\tfunction DemoClass(){ _classCallCheck(this,DemoClass);}\n" +
+            "\tfunction DemoClass(){\n" +
+            "\t _classCallCheck(this,DemoClass);}\n" +
             "\t_createClass(DemoClass, [\n" +
             "\t\t{key: \"doh\",set: function set(d){this._doh = d;},get: function get(){return this._doh;}}],null);\n" +
             "\treturn DemoClass;\n" +
@@ -104,7 +107,8 @@ public void testStaticPropertiesInClass() {
   Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
           "var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n" +
           "var DemoClass = function() { \n" +
-          "\tfunction DemoClass(){ _classCallCheck(this,DemoClass);}\n" +
+          "\tfunction DemoClass(){\n" +
+          "\t _classCallCheck(this,DemoClass);}\n" +
           "\t_createClass(DemoClass, null,[\n" +
           "\t\t{key: \"doh\",set: function set(d){this._doh = d;},get: function get(){return this._doh;}}]);\n" +
           "\treturn DemoClass;\n" +
@@ -120,7 +124,8 @@ public void testStaticPropertiesInClass() {
     demoConstructor.addChild(doh);
     Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
             "var DemoClass = function() { \n" +
-            "\tfunction DemoClass(){ _classCallCheck(this,DemoClass); this.foo = 42; }\n" +
+            "\tfunction DemoClass(){\n" +
+            "\t _classCallCheck(this,DemoClass); this.foo = 42; }\n" +
             "\treturn DemoClass;\n" +
             "}();", demoClass.genCode());
   }
@@ -138,7 +143,8 @@ public void testStaticPropertiesInClass() {
     Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
             "var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n" +
             "var DemoClass = function() { \n" +
-            "\tfunction DemoClass(){ _classCallCheck(this,DemoClass);}\n" +
+            "\tfunction DemoClass(){\n" +
+            "\t _classCallCheck(this,DemoClass);}\n" +
             "\tDemoClass.prototype.bar = function(){return this.foo;}\n" +
             "\t_createClass(DemoClass, [\n" +
             "\t\t{key: \"doh\",get: function get(){return this.foo;}}],null);\n" +

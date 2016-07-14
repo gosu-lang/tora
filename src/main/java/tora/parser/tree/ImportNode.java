@@ -3,20 +3,25 @@ package tora.parser.tree;
 
 public class ImportNode extends Node
 {
-
   public ImportNode(String packageName )
   {
     super( packageName );
+    int lastDotIndex = packageName.lastIndexOf('.') + 1;
+    if (lastDotIndex < 0) lastDotIndex = 0;
+    _packageClass = packageName.substring(lastDotIndex);
   }
 
+
+  private String _packageClass;
 
   @Override
   public String genCode()
   {
-    int lastDotIndex = getName().lastIndexOf('.') + 1;
-    if (lastDotIndex < 0) lastDotIndex = 0;
-    String importedClass = getName().substring(lastDotIndex);
-    return "var " + importedClass + " = Java.type(\'" + getName() + "\')";
+    return "var " + _packageClass + " = Java.type(\'" + getName() + "\')";
+  }
+
+  public String getPackageClass() {
+    return _packageClass;
   }
 
 
