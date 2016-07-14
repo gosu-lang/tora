@@ -115,6 +115,14 @@ public class ParserTest {
     }
 
     @Test
+    public void parseExtends() {
+        ProgramNode tree = this.parse(
+                "class Sub extends Parent() {}");
+        assertEquals(tree.getFirstChild(ClassNode.class),
+                new ClassNode("Sub", "Parent"));
+    }
+
+    @Test
     public void parseArgsError() {
         assertHasError(this.parse("class DemoClass { bar(a,){} }"));
         assertHasError(this.parse("class DemoClass { bar(,){} }"));

@@ -24,6 +24,16 @@ public class ProgramNode extends Node
     _errorList = new LinkedList<>();
   }
 
+  /*Returns the full package name of imported class (ex. java.util.ArrayList)
+   *from class name (ex. ArrayList)*/
+   public String getPackageFromClassName(String packageClass) {
+    for (ImportNode node: getChildren(ImportNode.class)) {
+      if (node.getPackageClass().equals(packageClass))
+        return node.getName();
+    }
+     return null;
+  }
+
   @Override
   public String genCode()
   {

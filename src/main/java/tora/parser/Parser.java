@@ -1,17 +1,17 @@
 package tora.parser;
 
 import com.sun.tools.javac.util.List;
+import gw.lang.reflect.IMethodInfo;
+import gw.lang.reflect.IType;
+import gw.lang.reflect.TypeSystem;
 import tora.parser.tree.*;
 
 public class Parser
 {
-  String _src;
   private ClassNode _classNode;
   private ProgramNode _programNode;
   private Tokenizer _tokenizer;
   private Tokenizer.Token _currentToken, _nextToken;
-
-  private List<String> _errorList;
 
   //Constructor sets the src from which the parser reads
   public Parser(Tokenizer tokenizer){
@@ -36,11 +36,19 @@ public class Parser
   {
     if( match(TokenType.CLASS))
     {
+      //parse class name
       nextToken();
       Tokenizer.Token className = _currentToken;
       skip(match(TokenType.IDENTIFIER));
       _classNode = new ClassNode( className.getValue() );
       _programNode.addChild(_classNode);
+      //parse any super classes
+      if(matchKeyword("extends")) {
+        skip(matchKeyword("extends"));
+        _classNode.setSuperClass(_currentToken.getValue());
+        skip(match(TokenType.IDENTIFIER));
+      }
+      //parse class body
       skip(match('{'));
       parseClassBody(className.getValue());
       skip(match('}'));
@@ -126,6 +134,7 @@ public class Parser
     FunctionBodyNode body = parseFunctionBody();
 
     FunctionNode node = new FunctionNode(functionName, className, args);
+    node.setOverride(isOverrideFunction(functionName));
     node.setTokens(start, _currentToken);
     node.addChild(body);
     nextToken();
@@ -188,7 +197,13 @@ public class Parser
       nextWhiteSpace();
       if (match('}')) curlyCount--;
       if (match('{')) curlyCount++;
-      concatToken(val);
+      //Replace super with Java.super(_superClassObject) to support java-style super
+      if (matchKeyword("super")) {
+        val.append("Java.super(" + ClassNode.SUPERTYPE_OBJECT + ")");
+      }
+      else{
+        concatToken(val);
+      }
     }
     return new FunctionBodyNode(val.toString());
   }
@@ -272,6 +287,17 @@ public class Parser
       _nextToken = _tokenizer.nextNonWhiteSpace();
     }
     return _nextToken;
+  }
+
+  private boolean isOverrideFunction(String functionName) {
+    String packageName = _programNode.getPackageFromClassName(_classNode.getSuperClass());
+    if (packageName == null) return false;
+    IType superType = TypeSystem.getByFullName(packageName);
+    if (superType == null) return false;
+    for (IMethodInfo method : superType.getTypeInfo().getMethods()) {
+      if (method.getDisplayName().equals(functionName)) return true;
+    }
+    return false;
   }
 
   private void nextWhiteSpace() {
