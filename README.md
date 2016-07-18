@@ -108,6 +108,8 @@ TODO import statement examples
 
 ### Extending Gosu & Java Classes from Javascript
 
+Java classes can be extended using javascript, allowing for the creation of modified classes. One
+known limitation is that the constructor of the superclass cannot be overwritten.
 
 Javascript
 
@@ -115,10 +117,6 @@ Javascript
     import java.util.ArrayList;
 
     class sizePrints extends ArrayList {
-        constructor() {
-            super();
-        }
-
         size () {
             print(super.size());
         }
@@ -134,3 +132,12 @@ Gosu:
 
 
 ## Javascript Expression Support
+
+
+## Multi-threading Support
+
+The current implementation of Nashorn is not yet stable for multi-threading. Although it
+allows for multi-threading, the implementation is very slow when it comes to creating
+and deleting objects. Therefore, users should not attempt to instantiate any Nashorn objects
+from seperate threads, but instead create them before threading begins, then updating the object
+properties as the script runs.
