@@ -24,7 +24,6 @@ public class ImportNode extends Node
     return _packageClass;
   }
 
-
   @Override
   public boolean equals(Object obj) {
     if (!(obj instanceof ImportNode)) return false;

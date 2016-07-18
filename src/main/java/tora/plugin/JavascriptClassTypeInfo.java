@@ -95,7 +95,8 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
                 .withCallHandler((ctx, args) -> {
                   try {
                     if (node.isStatic()) ctx = classObject;
-                    Object o = ((Invocable) _engine).invokeMethod(ctx, node.getName(), args);
+                    ScriptObjectMirror context = (ScriptObjectMirror) ctx;
+                    Object o = context.callMember(node.getName(), args);
                     return o;
                   } catch (Exception e) {
                     throw GosuExceptionUtil.forceThrow(e);
@@ -195,3 +196,4 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
   }
 
 }
+

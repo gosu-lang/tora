@@ -108,7 +108,7 @@ public class Parser
     skip(matchClassKeyword("constructor"));
 
     String args = parseArgs();
-    FunctionBodyNode body = parseFunctionBody();
+    FunctionBodyNode body = parseFunctionBody(false);
 
     Tokenizer.Token end = _currentToken;
     nextToken();
@@ -128,10 +128,11 @@ public class Parser
   private FunctionNode parseFunction(String className) {
     Tokenizer.Token start = _currentToken; //Name of function
     String functionName = start.getValue();
+    boolean isOverrideFunction = isOverrideFunction(functionName);
     skip(match(TokenType.IDENTIFIER));
 
     String args = parseArgs();
-    FunctionBodyNode body = parseFunctionBody();
+    FunctionBodyNode body = parseFunctionBody(isOverrideFunction);
 
     FunctionNode node = new FunctionNode(functionName, className, args);
     node.setOverride(isOverrideFunction(functionName));
@@ -158,7 +159,7 @@ public class Parser
     skip(match(TokenType.IDENTIFIER));
 
     String args = parseArgs();
-    FunctionBodyNode body = parseFunctionBody();
+    FunctionBodyNode body = parseFunctionBody(false);
 
     PropertyNode node = new PropertyNode(functionName.getValue(), className, args, isSetter);
     node.setTokens(start, _currentToken);
@@ -188,7 +189,7 @@ public class Parser
     return val.toString();
   }
 
-  private FunctionBodyNode parseFunctionBody() {
+  private FunctionBodyNode parseFunctionBody(boolean isOverrideFunction) {
     StringBuilder val = new StringBuilder();
     expect(match('{'));
     concatToken(val); // '{'
@@ -199,7 +200,8 @@ public class Parser
       if (match('{')) curlyCount++;
       //Replace super with Java.super(_superClassObject) to support java-style super
       if (matchKeyword("super")) {
-        val.append("Java.super(" + ClassNode.SUPERTYPE_OBJECT + ")");
+        //needs "this._superClassObject" to reference super if not function does not override
+        val.append("Java.super(" + (isOverrideFunction?"":"this.") + ClassNode.SUPERTYPE_OBJECT + ")");
       }
       else{
         concatToken(val);

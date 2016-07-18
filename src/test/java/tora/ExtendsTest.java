@@ -51,6 +51,11 @@ public class ExtendsTest {
         assertEquals(2, eval("var extended = new ExtendsClass(); extended.add(1); return extended.size()"));
     }
 
+    @Test
+    public void superInNonoverrideMethod() {
+        assertEquals(6, eval("var extended = new ExtendsClass(); extended.anotherAdd(6); return extended.get(0)"));
+    }
+
     private Object eval( String program )
     {
         IGosuProgramParser programParser = CommonServices.getGosuParserFactory().createProgramParser();

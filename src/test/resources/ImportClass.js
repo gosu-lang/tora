@@ -19,4 +19,5 @@ class ImportClass {
     var gosuObject = new GosuDemoClass();
     return gosuObject.doubleInput(x);
   }
+
 }
