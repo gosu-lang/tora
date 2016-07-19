@@ -93,8 +93,6 @@ Javascript: foo.js
     }
 
 
-
-
 TODO: Describe basic class syntax support
 
 ### Accessing Javascript Classes from Gosu
@@ -111,14 +109,11 @@ Gosu:
     print(foo.bars) // 40
     print(Foo.hello()) // Hello
 
-
-
 ### Accessing Gosu & Java Classes from Javascript
 
-The Import statement is used to extend gosu and java classes with javascript methods.
+The (non-standard javascript) import statement is used to extend gosu and java classes with javascript methods.
 
-Javascript: hello.js
-
+Here is some example javascript: hello.js
 
     import java.util.ArrayList;
 
@@ -130,15 +125,11 @@ Javascript: hello.js
         print(arrlist.toArray(new Integer[arrlist.size()]));
     }
 
-
-Gosu:
+This can be invoked from Gosu like so:
 
     hello.hello(); //prints [1,2,3]
 
-
-
-
-TODO import statement examples
+The import statement in tora acts like the java import statement, not the (unsupported) javascript version.
 
 ### Extending Gosu & Java Classes from Javascript
 
@@ -165,13 +156,10 @@ Gosu:
     sizePrintsArrayList.size(); // Prints 3
 
 
-## Javascript Expression Support
-
-
 ## Multi-threading Support
 
 The current implementation of Nashorn is not yet stable for multi-threading. Although it
 allows for multi-threading, the implementation is very slow when it comes to creating
-and deleting objects. Therefore, users should not attempt to instantiate any Nashorn objects
-from seperate threads, but instead create them before threading begins, then updating the object
-properties as the script runs.
+and deleting objects. 
+
+Users should not attempt to access any Nashorn objects from multiple threads.
