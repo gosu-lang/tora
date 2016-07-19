@@ -68,11 +68,11 @@ Javascript: foo.js
         }
 
         //Methods
-        bar() {
+        function bar() {
             return this.foo * 2;
         }
 
-        baz(a,b) {
+        function baz(a,b) {
             return a+b + this.foo;
         }
 
@@ -92,10 +92,85 @@ Javascript: foo.js
 
     }
 
+####  Constructor 
+The constructor is called when a new object is created. It initializes the properties within the object.
 
-TODO: Describe basic class syntax support
+Javascript
 
-### Accessing Javascript Classes from Gosu
+    class Foo {
+        constructor(a) {
+            this.bar = a;
+        }
+    }
+
+Gosu
+    
+    var foo = new Foo(5); // Creates new Foo object and sets this.bar to a
+    
+#### Methods
+Methods are functions that are assigned to classes. They can interact with properties of the class and call other
+internal methods. 
+Javascript
+
+    class Foo {
+
+        constructor(a) {
+            this.foo = a;
+        }
+
+        function bar() {
+            return this.foo * 2;
+        }
+    }
+
+Gosu
+
+    var foo = new Foo(21);
+    print(foo.bar); // returns 42 
+#### Static Methods
+
+Javascript
+
+    class Foo {
+        constructor(a) {
+            this.foo = a;
+            this._bars = 5;
+        }
+
+        static function staticFoo() {
+            return 42;
+        }
+    }
+    
+Gosu
+
+    print(Foo.staticFoo()); // Prints  42
+    
+#### Properties
+Classes can have getter and setter properties which abstract the properties held within the class.
+    
+    class Foo {
+        constructor(a) {
+            this.foo = a;
+            this._bars = 5;
+        }
+        get bars() {
+            return this._bars*2;
+        }
+
+        set bars(a) {
+            this._bars = a;
+        }
+    }
+
+Gosu 
+
+    var foo = new Foo();
+    foo.bars = 21;
+    print(foo.bars) // Prints 42 
+    
+
+## Accessing Javascript Classes from Gosu
 
 Javascript classes can be accessed using the same syntax as Gosu classes.
 
