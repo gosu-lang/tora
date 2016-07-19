@@ -55,6 +55,12 @@ public class JavascriptPluginTest
     assertEquals(40,eval("var dem = new DemoClass(); DemoClass.staticPoh = 40; return DemoClass.staticPoh"));
   }
 
+  @Test
+  public void topLevelVarIsPreservedAcrossInvocations() {
+    assertEquals(0.0, eval("CounterVar.nextNum()"));
+    assertEquals(1.0, eval("CounterVar.nextNum()"));
+  }
+
   private Object eval( String program )
   {
     IGosuProgramParser programParser = CommonServices.getGosuParserFactory().createProgramParser();

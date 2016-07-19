@@ -7,16 +7,50 @@ Tora is a [Gosu](http://gosu-lang.github.io/) extension library that allows for 
 The library supports the use of javascript programs from Gosu, the use of ES6-flavored javascript classes from Gosu, the use of Gosu (and Java) classes from javascript, as well as the creation of type-safe javascript expressions for use in Java or Gosu, as a scripting layer.
 
 This library is sponsored and supported by [Guidewire Software](http://www.guidewire.com)
+
 ## Javascript Program Support
 
-Variables
+Tora makes standard ES5-style Javascript programs available as types in Gosu.
 
-Functions
+The javascript program is evaluated when the type is first accessed.  Top level functions 
+are accessible as static methods on the program type.
 
-    var hello = function() {
-        print("Hello");
+### Functions
+
+Here is an example top-level function found in `ExampleProgram.js`:
+
+    function hello(name) {
+        return "Hello " + name;
+    }
+    
+This function could be invoked from Gosu like so:
+
+    print( ExampleProgram.hello("Gosu") )
+
+#### Parameter & Return Types
+
+Parameters and the return type of javascript functions are all of type `dynamic.Dynamic` which is a [special Gosu type](https://gosu-lang.github.io/2014/07/10/dynamic-language-features-in-gosu.html) that allows for dynamic type behavior.
+
+### Variables
+
+Top level variables in javascript programs are treated as global variables and will retain their values
+between evaluation.  Given this function:
+
+    var i = 0;
+    
+    function nextNum() {
+        return i++;
     }
 
+The following code
+
+    print( ExampleProgram.nextNum() )
+    print( ExampleProgram.nextNum() )
+
+will print
+
+    0.0
+    1.0
 
 ## Javascript Class Support
 
