@@ -3,6 +3,7 @@ package tora.plugin;
 import com.sun.xml.internal.rngom.digested.DDataPattern;
 import gw.config.CommonServices;
 import gw.lang.reflect.*;
+import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.util.GosuExceptionUtil;
 import jdk.nashorn.api.scripting.JSObject;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
@@ -26,7 +27,6 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
   public JavascriptClassTypeInfo( JavascriptTypeBase javascriptType, ProgramNode programNode)
   {
     super( javascriptType );
-
     _programNode = programNode;
     ClassNode classNode = programNode.getFirstChild(ClassNode.class);
     _constructorList = new ArrayList<>();
@@ -115,7 +115,7 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
     for (IMethodInfo method : superType.getTypeInfo().getMethods()) {
       _methods.add(new MethodInfoBuilder()
               .withName(method.getDisplayName())
-              .withParameters(makeParamList(method))
+              .withParameters(makeInheritedParamList(method, superType))
               .withStatic(method.isStatic())
               .withReturnType(method.getReturnType())
               .withCallHandler((ctx, args) -> {
@@ -143,15 +143,25 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
     return parameterInfoBuilders;
   }
 
-  private ParameterInfoBuilder[] makeParamList (IMethodInfo method) {
+  /*Construct a parameter list for inherited parameters. If param matches a generic type variable, make type Dynamic*/
+  private ParameterInfoBuilder[] makeInheritedParamList (IMethodInfo method, IType superType) {
     IParameterInfo[]  params = method.getParameters();
     ParameterInfoBuilder[] parameterInfoBuilders = new ParameterInfoBuilder[params.length];
+
     for (int i = 0; i < params.length; i++) {
-      parameterInfoBuilders[i] = new ParameterInfoBuilder().like(params[i])
-              .withType(TypeSystem.getByFullName("dynamic.Dynamic"));
+      ParameterInfoBuilder param = new ParameterInfoBuilder().like(params[i]);
+      parameterInfoBuilders[i] = param;
+      //Check to see if param matches a type variable
+      for (int j = 0; j < superType.getGenericTypeVariables().length; j++) {
+        //If param is a type variable, make dynamic
+        if (superType.getGenericTypeVariables()[j].getName().equals(params[i].getDisplayName())) {
+          param = param.withType(TypeSystem.getByFullName("dynamic.Dynamic"));
+        }
+      }
     }
     return parameterInfoBuilders;
   }
+
 
   @Override
   public List<? extends IConstructorInfo> getConstructors() {

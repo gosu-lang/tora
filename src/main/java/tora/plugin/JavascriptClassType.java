@@ -20,4 +20,10 @@ public class JavascriptClassType extends JavascriptTypeBase
   {
     return _typeinfo;
   }
+
+  @Override
+  public boolean isGenericType()
+  {
+    return true;
+  }
 }

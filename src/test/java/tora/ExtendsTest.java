@@ -19,6 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import static junit.framework.TestCase.assertEquals;
@@ -54,6 +55,15 @@ public class ExtendsTest {
     @Test
     public void superInNonoverrideMethod() {
         assertEquals(6, eval("var extended = new ExtendsClass(); extended.anotherAdd(6); return extended.get(0)"));
+    }
+
+    @Test
+    public void overloadedInheritedMethod() {
+        /*remove can either take an object or an index*/
+        assertEquals("hello", eval("var extended = new ExtendsClass(); " +
+                "extended.anotherAdd('hello'); " +
+                "return extended.remove(0)"));
+
     }
 
     private Object eval( String program )
