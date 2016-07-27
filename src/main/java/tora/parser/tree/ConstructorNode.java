@@ -17,7 +17,7 @@ public class ConstructorNode extends FunctionNode
   public String genCode()
   {
     String functionBodyCode = getChildren().isEmpty()?"{}":getChildren().get(0).genCode();
-    return   "function " + getName() + "(" + getArgs() + ")" +
+    return   "function " + getName() + "(" + getParams() + ")" +
             functionBodyCode.replaceFirst("[{]", "{\n\t _classCallCheck(this," + getName() +
             ");" );
   }

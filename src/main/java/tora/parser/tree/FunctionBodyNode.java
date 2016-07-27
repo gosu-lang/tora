@@ -13,9 +13,4 @@ public class FunctionBodyNode extends Node
     _content = content;
   }
 
-  @Override
-  public String genCode()
-  {
-    return _content;
-  }
 }

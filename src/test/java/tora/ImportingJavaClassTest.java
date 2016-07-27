@@ -34,11 +34,6 @@ public class ImportingJavaClassTest
   }
 
   @Test
-  public void testEval() throws ScriptException {
-    assertEquals("foo", eval("return \"foo\""));
-  }
-  
-  @Test
   public void testJavaClassImport() throws ScriptException {
     assertEquals(42, eval("return ImportClass.javaFoo()"));
     assertEquals("hello", eval("var imported = new ImportClass(); return imported.javaBar()"));

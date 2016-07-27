@@ -43,7 +43,8 @@ public enum TokenType {
             "%", "++", "--", "-", "+", "**", "/", "*", //Arithmetic operators
             "&", "|", "^", "~", "<<", ">>", ">>>", //Bitwise operators
             "&&", "||", "!",  //Logical operators
-            "?", ":"}; //Ternary operators
+            "?", ":", //Ternary operators
+            "=>"}; //Arrow operator
     private static final Set<String> OPERATORS_SET = new HashSet<String>(Arrays.asList(OPERATORS));
 
     //Rules for identifier names from emca-262 section 11.6.1

@@ -47,11 +47,6 @@ public class CodeGenTest
                     "\t _classCallCheck(this,Foo);}",
             new ConstructorNode("Foo").genCode());}
 
-  @Test
-  public void testSimpleFunctionBodyNode() {
-    Assert.assertEquals("var foo = 15;",
-            new FunctionBodyNode("var foo = 15;").genCode());
-  }
 
   @Test
   public void testSimpleFunctionNode() {
@@ -79,8 +74,8 @@ public class CodeGenTest
     PropertyNode dohSet = new PropertyNode("doh", "DemoClass", "d", true);
     demoClass.addChild(dohGet);
     demoClass.addChild(dohSet);
-    dohGet.addChild(new FunctionBodyNode("{return this._doh;}"));
-    dohSet.addChild(new FunctionBodyNode("{this._doh = d;}"));
+    dohGet.addChild(new FillerNode("{return this._doh;}"));
+    dohSet.addChild(new FillerNode("{this._doh = d;}"));
     Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
             "var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n" +
             "var DemoClass = function() { \n" +
@@ -102,8 +97,8 @@ public void testStaticPropertiesInClass() {
   dohSet.setStatic(true);
   demoClass.addChild(dohGet);
   demoClass.addChild(dohSet);
-  dohGet.addChild(new FunctionBodyNode("{return this._doh;}"));
-  dohSet.addChild(new FunctionBodyNode("{this._doh = d;}"));
+  dohGet.addChild(new FillerNode("{return this._doh;}"));
+  dohSet.addChild(new FillerNode("{this._doh = d;}"));
   Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
           "var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n" +
           "var DemoClass = function() { \n" +
@@ -120,7 +115,7 @@ public void testStaticPropertiesInClass() {
     ClassNode demoClass = new ClassNode("DemoClass");
     ConstructorNode demoConstructor = new ConstructorNode("DemoClass");
     demoClass.addChild(demoConstructor);
-    FunctionBodyNode doh = new FunctionBodyNode("{ this.foo = 42; }");
+    FillerNode doh = new FillerNode("{ this.foo = 42; }");
     demoConstructor.addChild(doh);
     Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
             "var DemoClass = function() { \n" +
@@ -138,8 +133,8 @@ public void testStaticPropertiesInClass() {
     PropertyNode doh = new PropertyNode("doh", false);
     demoClass.addChild(bar);
     demoClass.addChild(doh);
-    bar.addChild(new FunctionBodyNode("{return this.foo;}"));
-    doh.addChild(new FunctionBodyNode("{return this.foo;}"));
+    bar.addChild(new FillerNode("{return this.foo;}"));
+    doh.addChild(new FillerNode("{return this.foo;}"));
     Assert.assertEquals("function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\") } }\n" +
             "var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n" +
             "var DemoClass = function() { \n" +
@@ -207,13 +202,13 @@ public void testStaticPropertiesInClass() {
     demoClass.addChild(pohSet);
     demoClass.addChild(pohGet);
     demoClass.addChild(staticFoo);
-    demoConstructor.addChild(new FunctionBodyNode("{this.foo = 42;}"));
-    bar.addChild(new FunctionBodyNode("{return this.foo;}"));
-    dohGet.addChild(new FunctionBodyNode("{return this.foo;}"));
-    dohSet.addChild(new FunctionBodyNode("{this.halfDoh = d/2;}"));
-    pohGet.addChild(new FunctionBodyNode("{return this.doh;}"));
-    pohSet.addChild(new FunctionBodyNode("{this.doublePoh = p*2;}"));
-    staticFoo.addChild(new FunctionBodyNode("{return 42;}"));
+    demoConstructor.addChild(new FillerNode("{this.foo = 42;}"));
+    bar.addChild(new FillerNode("{return this.foo;}"));
+    dohGet.addChild(new FillerNode("{return this.foo;}"));
+    dohSet.addChild(new FillerNode("{this.halfDoh = d/2;}"));
+    pohGet.addChild(new FillerNode("{return this.doh;}"));
+    pohSet.addChild(new FillerNode("{this.doublePoh = p*2;}"));
+    staticFoo.addChild(new FillerNode("{return 42;}"));
     return demoClass;
   }
 

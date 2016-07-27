@@ -1,12 +1,10 @@
 package tora.parser.tree;
 
 
-import tora.parser.Tokenizer;
-
 public class FunctionNode extends Node
 {
 
-  private String _args = "";
+  private String _params = "";
   private String _className;
   private Boolean _isStatic = false;
   private Boolean _isOverride = false;
@@ -24,19 +22,19 @@ public class FunctionNode extends Node
     _isStatic = isStatic;
   }
 
-  public FunctionNode( String name, String className, String args)
+  public FunctionNode( String name, String className, String params)
   {
     super( name );
     _className = className;
-    _args = args;
+    _params = params;
   }
 
-  public FunctionNode( String name, String className, String args, boolean isStatic )
+  public FunctionNode( String name, String className, String params, boolean isStatic )
   {
     super( name );
     _className = className;
     _isStatic = isStatic;
-    _args = args;
+    _params = params;
   }
 
   public boolean isStatic() {
@@ -56,12 +54,12 @@ public class FunctionNode extends Node
   }
 
 
-  public String getArgs() {
-    return _args;
+  public String getParams() {
+    return _params;
   }
 
-  public void setArgs(String args) {
-    _args = args;
+  public void setParams(String params) {
+    _params = params;
   }
 
   @Override
@@ -70,10 +68,10 @@ public class FunctionNode extends Node
     String functionBodyCode = getChildren().isEmpty()?"{}":getChildren().get(0).genCode();
     //If it's an override function, give as key value pair for Java.extend codegen from ClassNode
     if (isOverride()) {
-      return getName() + ": function(" + _args + ")" + functionBodyCode;
+      return getName() + ": function(" + _params + ")" + functionBodyCode;
     }
     else return _className + (_isStatic?".":".prototype.") + //If static, can be method of class directly
-            getName() + " = " + "function" + "(" + _args + ")" + functionBodyCode;
+            getName() + " = " + "function" + "(" + _params + ")" + functionBodyCode;
   }
 
 

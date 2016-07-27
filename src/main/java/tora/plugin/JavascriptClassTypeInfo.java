@@ -1,17 +1,13 @@
 package tora.plugin;
 
-import com.sun.xml.internal.rngom.digested.DDataPattern;
 import gw.config.CommonServices;
 import gw.lang.reflect.*;
-import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.util.GosuExceptionUtil;
 import jdk.nashorn.api.scripting.JSObject;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
-import tora.parser.Parser;
 import tora.parser.tree.*;
 
 import javax.script.*;
-import java.lang.reflect.Method;
 import java.util.*;
 
 public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
@@ -46,7 +42,7 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
 
   private void addConstructor(ClassNode classNode) {
     ConstructorNode constructor = classNode.getFirstChild(ConstructorNode.class);
-    ParameterInfoBuilder[] params = (constructor == null)?null:makeParamList(constructor.getArgs());
+    ParameterInfoBuilder[] params = (constructor == null)?null:makeParamList(constructor.getParams());
     _constructor = new ConstructorInfoBuilder()
             .withParameters(params)
             .withConstructorHandler((args) -> {
@@ -90,7 +86,7 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
         _methods.add(new MethodInfoBuilder()
                 .withName(node.getName())
                 .withStatic(node.isStatic())
-                .withParameters(makeParamList(node.getArgs()))
+                .withParameters(makeParamList(node.getParams()))
                 .withReturnType(TypeSystem.getByFullName("dynamic.Dynamic"))
                 .withCallHandler((ctx, args) -> {
                   try {

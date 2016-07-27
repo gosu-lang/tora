@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Created by carson on 6/15/16.
  */
-public abstract class Node
+public class Node
 {
   private String _name;
   Tokenizer.Token _start;
@@ -75,7 +75,13 @@ public abstract class Node
   }
 
   /* Generates ES5 code */
-  public abstract String genCode();
+  public String genCode() {
+    StringBuilder childCode = new StringBuilder();
+    for (Node node : this.getChildren()) {
+      childCode.append(node.genCode());
+    }
+    return childCode.toString();
+  }
 
 
   @Override

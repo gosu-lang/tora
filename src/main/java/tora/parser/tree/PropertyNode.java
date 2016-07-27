@@ -1,7 +1,5 @@
 package tora.parser.tree;
 
-import tora.parser.Tokenizer;
-
 public class PropertyNode extends FunctionNode
 {
   private boolean _isSetter;
@@ -36,7 +34,7 @@ public class PropertyNode extends FunctionNode
   {
     String functionBodyCode = getChildren().isEmpty()?"{}":getChildren().get(0).genCode();
     return  (_isSetter?"set":"get") +
-            ": function " + (_isSetter?"set":"get") + "(" + getArgs() + ")" +
+            ": function " + (_isSetter?"set":"get") + "(" + getParams() + ")" +
             functionBodyCode; //Should have one FunctionBodyNode child
   }
 

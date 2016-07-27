@@ -1,6 +1,5 @@
 package tora.parser;
 
-import com.sun.tools.javac.util.List;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
@@ -31,6 +30,7 @@ public class Parser
     if (!isES6Class() && !match(TokenType.EOF)) _programNode.addChild(parseRestOfProgram());
     return _programNode;
   }
+
 
   private void parseClassStatement()
   {
@@ -108,7 +108,7 @@ public class Parser
     skip(matchClassKeyword("constructor"));
 
     String args = parseArgs();
-    FunctionBodyNode body = parseFunctionBody(false);
+    FunctionBodyNode body = parseFunctionBody(className, false);
 
     Tokenizer.Token end = _currentToken;
     nextToken();
@@ -132,10 +132,10 @@ public class Parser
     skip(match(TokenType.IDENTIFIER));
 
     String args = parseArgs();
-    FunctionBodyNode body = parseFunctionBody(isOverrideFunction);
+    FunctionBodyNode body = parseFunctionBody(functionName, isOverrideFunction);
 
     FunctionNode node = new FunctionNode(functionName, className, args);
-    node.setOverride(isOverrideFunction(functionName));
+    node.setOverride(isOverrideFunction);
     node.setTokens(start, _currentToken);
     node.addChild(body);
     nextToken();
@@ -155,13 +155,13 @@ public class Parser
     Tokenizer.Token start = _currentToken; //'get' or 'set'
     boolean isSetter = matchClassKeyword("set");
     skip(matchClassKeyword("get") || matchClassKeyword("set"));
-    Tokenizer.Token functionName = _currentToken;
+    String functionName = _currentToken.getValue();
     skip(match(TokenType.IDENTIFIER));
 
     String args = parseArgs();
-    FunctionBodyNode body = parseFunctionBody(false);
+    FunctionBodyNode body = parseFunctionBody(functionName, false);
 
-    PropertyNode node = new PropertyNode(functionName.getValue(), className, args, isSetter);
+    PropertyNode node = new PropertyNode(functionName, className, args, isSetter);
     node.setTokens(start, _currentToken);
     node.addChild(body);
     nextToken();
@@ -189,34 +189,56 @@ public class Parser
     return val.toString();
   }
 
-  private FunctionBodyNode parseFunctionBody(boolean isOverrideFunction) {
-    StringBuilder val = new StringBuilder();
+  private FunctionBodyNode parseFunctionBody(String functionName, boolean isOverrideFunction) {
+    FunctionBodyNode bodyNode = new FunctionBodyNode(functionName);
+    FillerNode fillerNode = new FillerNode();
+    fillerNode.context.inOverrideFunction = isOverrideFunction;
     expect(match('{'));
-    concatToken(val); // '{'
+    fillerNode.concatToken(_currentToken); // '{'
     int curlyCount = 1;
     while (curlyCount > 0 && !match(TokenType.EOF)) {
-      nextWhiteSpace();
+      nextAnyToken();
       if (match('}')) curlyCount--;
       if (match('{')) curlyCount++;
-      //Replace super with Java.super(_superClassObject) to support java-style super
-      if (matchKeyword("super")) {
-        //needs "this._superClassObject" to reference super if not function does not override
-        val.append("Java.super(" + (isOverrideFunction?"":"this.") + ClassNode.SUPERTYPE_OBJECT + ")");
-      }
-      else{
-        concatToken(val);
+
+      if (matchOperator("=>")){
+        skip(matchOperator("=>"));
+        ArrowExpressionNode arrowNode = new ArrowExpressionNode();
+        arrowNode.extractParams(fillerNode);
+        //Add filler node and create a new one
+        bodyNode.addChild(fillerNode);
+        fillerNode = new FillerNode();
+        if (match('{')) {
+          arrowNode.addChild(parseFunctionBody(null, false));
+          expect(match('}'));
+        } else {
+          arrowNode.addChild(parseExpression());
+        }
+        bodyNode.addChild(arrowNode);
+      } else {
+        fillerNode.concatToken(_currentToken);
       }
     }
-    return new FunctionBodyNode(val.toString());
+    bodyNode.addChild(fillerNode);
+    return bodyNode;
   }
 
-  private RestOfProgramNode parseRestOfProgram() {
-    StringBuilder program = new StringBuilder();
-    while (!match(TokenType.EOF)) {
-      concatToken(program);
-      nextWhiteSpace();
+  private FillerNode parseExpression() {
+    FillerNode fillerNode = new FillerNode();
+    while (!(match(TokenType.EOF) || match(';'))) {
+      fillerNode.concatToken(_currentToken);
+      nextAnyToken();
     }
-    return new RestOfProgramNode(program.toString());
+    return fillerNode;
+  }
+
+  private FillerNode parseRestOfProgram() {
+    FillerNode fillerNode = new FillerNode();
+    while (!match(TokenType.EOF)) {
+      fillerNode.concatToken(_currentToken);
+      nextAnyToken();
+    }
+    return fillerNode;
   }
 
   //========================================================================================
@@ -256,6 +278,13 @@ public class Parser
   {
     return match(TokenType.PUNCTUATION, String.valueOf(c));
   }
+
+  /*Match operators*/
+  private boolean matchOperator(String val )
+  {
+    return match(TokenType.OPERATOR, val);
+  }
+
 
   /*Match reserved keywords only*/
   private boolean matchKeyword(String val)
@@ -302,11 +331,12 @@ public class Parser
     return false;
   }
 
-  private void nextWhiteSpace() {
+  /*Move current token to the next token (including whitespace)*/
+  private void nextAnyToken() {
     _currentToken = _tokenizer.next();
   }
 
-  /*Move current token to the next non-whitespace character*/
+  /*Move current token to the next non-whitespace token*/
   private void nextToken()
   {
     if (_currentToken == null || _nextToken == null || _currentToken.getOffset() >= _nextToken.getOffset()) {
