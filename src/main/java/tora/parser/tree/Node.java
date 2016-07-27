@@ -53,6 +53,11 @@ public class Node
     _children.add( n );
   }
 
+  public Node withChild(Node n) {
+    _children.add( n );
+    return this;
+  }
+
   public String getName()
   {
     return _name;

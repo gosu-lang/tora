@@ -107,15 +107,16 @@ public class Parser
     Tokenizer.Token start = _currentToken; //'constructor'
     skip(matchClassKeyword("constructor"));
 
-    String args = parseArgs();
+    ParameterNode params = parseParams();
     FunctionBodyNode body = parseFunctionBody(className, false);
 
     Tokenizer.Token end = _currentToken;
     nextToken();
-    ConstructorNode node = new ConstructorNode(className, className, args);
-    node.setTokens(start, end);
-    node.addChild(body);
-    return node;
+    ConstructorNode constructorNode = new ConstructorNode(className, className);
+    constructorNode.setTokens(start, end);
+    constructorNode.addChild(params);
+    constructorNode.addChild(body);
+    return constructorNode;
   }
 
   private FunctionNode parseStaticFunction(String className, Tokenizer.Token staticToken) {
@@ -131,15 +132,16 @@ public class Parser
     boolean isOverrideFunction = isOverrideFunction(functionName);
     skip(match(TokenType.IDENTIFIER));
 
-    String args = parseArgs();
+    ParameterNode params = parseParams();
     FunctionBodyNode body = parseFunctionBody(functionName, isOverrideFunction);
 
-    FunctionNode node = new FunctionNode(functionName, className, args);
-    node.setOverride(isOverrideFunction);
-    node.setTokens(start, _currentToken);
-    node.addChild(body);
+    FunctionNode functionNode = new FunctionNode(functionName, className, false);
+    functionNode.setOverride(isOverrideFunction);
+    functionNode.setTokens(start, _currentToken);
+    functionNode.addChild(params);
+    functionNode.addChild(body);
     nextToken();
-    return node;
+    return functionNode;
 
   }
 
@@ -158,35 +160,51 @@ public class Parser
     String functionName = _currentToken.getValue();
     skip(match(TokenType.IDENTIFIER));
 
-    String args = parseArgs();
+    ParameterNode params = parseParams();
     FunctionBodyNode body = parseFunctionBody(functionName, false);
 
-    PropertyNode node = new PropertyNode(functionName, className, args, isSetter);
+    PropertyNode node = new PropertyNode(functionName, className, false, isSetter);
     node.setTokens(start, _currentToken);
+    node.addChild(params);
     node.addChild(body);
     nextToken();
     return node;
   }
 
-  /*Concats arguments into a comma-separated string*/
-  private String parseArgs() {
+  /*Concats parameters into a node*/
+  private ParameterNode parseParams() {
     skip(match('('));
+    ParameterNode paramNode = new ParameterNode();
+
     StringBuilder val = new StringBuilder();
     Matcher matcher = () -> match(')') || match(TokenType.IDENTIFIER);
     expect(matcher);
     while (!match(')') && !match(TokenType.EOF)) {
       if (match(TokenType.IDENTIFIER)) {
-        matcher = () -> match(',') || match(')'); //ending paren or comma can follow identifier
-        concatToken(val);
+        matcher = () -> match(',') || match(')') || match(':'); //ending paren or comma can follow identifier
+        String paramValue = _currentToken.getValue();
+        if(peekToken().getValue().equals(":")) {
+
+          paramNode.addParam(paramValue, parseType());
+        } else {
+          paramNode.addParam(paramValue,null);
+        }
       } else if (match(',')) {
         matcher = () -> match(TokenType.IDENTIFIER); //identifier must follow commas
-        concatToken(val);
       }
       nextToken();
       expect(matcher);
     }
     skip(match(')'));
-    return val.toString();
+
+    return paramNode;
+  }
+
+  private String parseType() {
+    nextToken();
+    nextToken();
+//    expect(match(TokenType.IDENTIFIER));
+    return _currentToken.getValue();
   }
 
   private FunctionBodyNode parseFunctionBody(String functionName, boolean isOverrideFunction) {

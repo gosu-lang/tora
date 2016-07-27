@@ -8,16 +8,19 @@ public class ConstructorNode extends FunctionNode
     super( name );
   }
 
-  public ConstructorNode( String name, String className, String args)
+  public ConstructorNode(String name, String className)
   {
-    super(name, className, args);
+    super(name, className);
   }
 
   @Override
   public String genCode()
   {
-    String functionBodyCode = getChildren().isEmpty()?"{}":getChildren().get(0).genCode();
-    return   "function " + getName() + "(" + getParams() + ")" +
+    String parameterCode = (getFirstChild(ParameterNode.class) == null) ?
+                              "" : getFirstChild(ParameterNode.class).genCode();
+    String functionBodyCode = (getFirstChild(FunctionBodyNode.class) == null) ?
+                              "{}" : getFirstChild(FunctionBodyNode.class).genCode();
+    return   "function " + getName() + "(" + parameterCode + ")" +
             functionBodyCode.replaceFirst("[{]", "{\n\t _classCallCheck(this," + getName() +
             ");" );
   }

@@ -42,7 +42,8 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
 
   private void addConstructor(ClassNode classNode) {
     ConstructorNode constructor = classNode.getFirstChild(ConstructorNode.class);
-    ParameterInfoBuilder[] params = (constructor == null)?null:makeParamList(constructor.getParams());
+    ParameterInfoBuilder[] params = (constructor == null)?
+            null:makeParamList(constructor.getFirstChild(ParameterNode.class));
     _constructor = new ConstructorInfoBuilder()
             .withParameters(params)
             .withConstructorHandler((args) -> {
@@ -86,7 +87,7 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
         _methods.add(new MethodInfoBuilder()
                 .withName(node.getName())
                 .withStatic(node.isStatic())
-                .withParameters(makeParamList(node.getParams()))
+                .withParameters(makeParamList(node.getFirstChild(ParameterNode.class)))
                 .withReturnType(TypeSystem.getByFullName("dynamic.Dynamic"))
                 .withCallHandler((ctx, args) -> {
                   try {
@@ -97,7 +98,6 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
                   } catch (Exception e) {
                     throw GosuExceptionUtil.forceThrow(e);
                   }
-
                 })
                 .build(this));
       }
@@ -128,13 +128,15 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
     }
   }
 
-  private ParameterInfoBuilder[] makeParamList (String args) {
-    String[] argList = args.split(",");
-    ParameterInfoBuilder[] parameterInfoBuilders = new ParameterInfoBuilder[argList.length];
-    for (int i = 0; i < argList.length; i++) {
-      parameterInfoBuilders[i] = new ParameterInfoBuilder().withName(argList[i])
+  private ParameterInfoBuilder[] makeParamList (ParameterNode parameterNode) {
+    ArrayList<String> paramsList = parameterNode.getParams();
+    ArrayList<String> typesList = parameterNode.getTypes();
+    ParameterInfoBuilder[] parameterInfoBuilders = new ParameterInfoBuilder[paramsList.size()];
+    for (int i = 0; i < paramsList.size(); i++) {
+      String type = (typesList.get(i).equals("dynamic.Dynamic")) ? "dynamic.Dynamic" :"java.lang." + typesList.get(i);
+      parameterInfoBuilders[i] = new ParameterInfoBuilder().withName(paramsList.get(i))
               .withDefValue(CommonServices.getGosuIndustrialPark().getNullExpressionInstance())
-              .withType(TypeSystem.getByFullName("dynamic.Dynamic"));
+              .withType(TypeSystem.getByFullName(type));
     }
     return parameterInfoBuilders;
   }

@@ -15,14 +15,10 @@ public class PropertyNode extends FunctionNode
     _isSetter = isSetter;
   }
 
-  public PropertyNode(String name, String className, String args, boolean isSetter) {
-    super(name, className, args);
+  public PropertyNode(String name, String className, boolean isStatic, boolean isSetter) {
+    super(name, className);
     _isSetter = isSetter;
-  }
-
-  public PropertyNode(String name, String className, String args, boolean isStatic, boolean isSetter) {
-    super(name, className, args, isStatic);
-    _isSetter = isSetter;
+    setStatic(isStatic);
   }
 
   public boolean isSetter() {
@@ -32,9 +28,12 @@ public class PropertyNode extends FunctionNode
   @Override
   public String genCode()
   {
-    String functionBodyCode = getChildren().isEmpty()?"{}":getChildren().get(0).genCode();
+    String parameterCode = (getFirstChild(ParameterNode.class) == null) ?
+            "" : getFirstChild(ParameterNode.class).genCode();
+    String functionBodyCode = (getFirstChild(FunctionBodyNode.class) == null) ?
+            "{}" : getFirstChild(FunctionBodyNode.class).genCode();
     return  (_isSetter?"set":"get") +
-            ": function " + (_isSetter?"set":"get") + "(" + getParams() + ")" +
+            ": function " + (_isSetter?"set":"get") + "(" + parameterCode + ")" +
             functionBodyCode; //Should have one FunctionBodyNode child
   }
 

@@ -3,7 +3,6 @@ package tora.parser.tree;
 import tora.parser.TokenType;
 import tora.parser.Tokenizer;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 
 /*(Hopefully) Temporary Node to hold tokens that we don't parse and blindly concatenate*/

@@ -71,8 +71,8 @@ public class ParserTest {
     public void parseSimpleProperty() {
         ClassNode tree = this.parseClass("class DemoClass{ get foo(){} set foo(){}}");
         assertHasChildren(tree,
-                new PropertyNode("foo", "DemoClass", "", false, false),
-                new PropertyNode("foo", "DemoClass", "", false, true)
+                new PropertyNode("foo", "DemoClass", false, false),
+                new PropertyNode("foo", "DemoClass", false, true)
                 );
     }
 
@@ -80,8 +80,8 @@ public class ParserTest {
     public void parseSimpleStaticProperty() {
         ClassNode tree = this.parseClass("class DemoClass{ static get foo(){} static set foo(){}}");
         assertHasChildren(tree,
-                new PropertyNode("foo", "DemoClass", "", true, false),
-                new PropertyNode("foo", "DemoClass", "", true, true)
+                new PropertyNode("foo", "DemoClass", true, false),
+                new PropertyNode("foo", "DemoClass", true, true)
         );
     }
 
@@ -95,10 +95,10 @@ public class ParserTest {
                 "static static(){}" +
                 "}");
         assertHasChildren(tree,
-                new FunctionNode("static", "DemoClass", "", false),
-                new FunctionNode("get", "DemoClass", "", false),
-                new FunctionNode("set", "DemoClass", "", false),
-                new FunctionNode("static", "DemoClass", "", true)
+                new FunctionNode("static", "DemoClass", false),
+                new FunctionNode("get", "DemoClass", false),
+                new FunctionNode("set", "DemoClass", false),
+                new FunctionNode("static", "DemoClass", true)
         );
     }
 

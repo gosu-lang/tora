@@ -1,6 +1,5 @@
 package tora.parser.tree;
 
-import tora.parser.TokenType;
 import tora.parser.Tokenizer;
 
 public class ArrowExpressionNode extends Node

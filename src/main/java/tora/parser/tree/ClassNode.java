@@ -1,8 +1,6 @@
 package tora.parser.tree;
 
 
-import tora.parser.Tokenizer;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
