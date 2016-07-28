@@ -133,9 +133,12 @@ public class Parser
     skip(match(TokenType.IDENTIFIER));
 
     ParameterNode params = parseParams();
+    String returnType = parseReturnType();
+
     FunctionBodyNode body = parseFunctionBody(functionName, isOverrideFunction);
 
     FunctionNode functionNode = new FunctionNode(functionName, className, false);
+    functionNode.setReturnType(returnType);
     functionNode.setOverride(isOverrideFunction);
     functionNode.setTokens(start, _currentToken);
     functionNode.addChild(params);
@@ -144,6 +147,7 @@ public class Parser
     return functionNode;
 
   }
+
 
   private PropertyNode parseStaticProperty(String className, Tokenizer.Token staticToken) {
     PropertyNode propertyNode = parseProperty(className);
@@ -183,12 +187,7 @@ public class Parser
       if (match(TokenType.IDENTIFIER)) {
         matcher = () -> match(',') || match(')') || match(':'); //ending paren or comma can follow identifier
         String paramValue = _currentToken.getValue();
-        if(peekToken().getValue().equals(":")) {
-
-          paramNode.addParam(paramValue, parseType());
-        } else {
-          paramNode.addParam(paramValue,null);
-        }
+        paramNode.addParam(paramValue, parseType());
       } else if (match(',')) {
         matcher = () -> match(TokenType.IDENTIFIER); //identifier must follow commas
       }
@@ -200,11 +199,39 @@ public class Parser
     return paramNode;
   }
 
+  /* Function: parseReturnType
+     -------------------------
+     Sees if there is a return type of the format function() : returnType {}
+      and returns dynamic.Dynamic if none is specified
+   */
+  private String parseReturnType() {
+    if(_currentToken.getValue().equals(":")) {
+      nextToken();
+//      if(match(TokenType.IDENTIFIER)) {
+        String returnType = _currentToken.getValue();
+        nextToken();
+        return returnType;
+//      }
+    }
+    return "dynamic.Dynamic";
+
+  }
+
+  /* Function: parseType()
+     ---------------------
+     Peeks at the next section of the argument list to see if the code
+     specifies a return type
+   */
   private String parseType() {
-    nextToken();
-    nextToken();
-//    expect(match(TokenType.IDENTIFIER));
-    return _currentToken.getValue();
+    if(peekToken().getValue().equals(":")) {
+      nextToken();
+//      if(match(TokenType.IDENTIFIER)) {
+        nextToken();
+        return _currentToken.getValue();
+//      }
+    }
+    return null;
+
   }
 
   private FunctionBodyNode parseFunctionBody(String functionName, boolean isOverrideFunction) {

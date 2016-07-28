@@ -84,22 +84,26 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
 
     for (FunctionNode node : classNode.getChildren(FunctionNode.class)) {
       if (!node.isOverride()) {
-        _methods.add(new MethodInfoBuilder()
-                .withName(node.getName())
-                .withStatic(node.isStatic())
-                .withParameters(makeParamList(node.getFirstChild(ParameterNode.class)))
-                .withReturnType(TypeSystem.getByFullName("dynamic.Dynamic"))
-                .withCallHandler((ctx, args) -> {
-                  try {
-                    if (node.isStatic()) ctx = classObject;
-                    ScriptObjectMirror context = (ScriptObjectMirror) ctx;
-                    Object o = context.callMember(node.getName(), args);
-                    return o;
-                  } catch (Exception e) {
-                    throw GosuExceptionUtil.forceThrow(e);
-                  }
-                })
-                .build(this));
+        try {
+          _methods.add(new MethodInfoBuilder()
+                  .withName(node.getName())
+                  .withStatic(node.isStatic())
+                  .withParameters(makeParamList(node.getFirstChild(ParameterNode.class)))
+                  .withReturnType(TypeSystem.getByRelativeName(node.getReturnType()))
+                  .withCallHandler((ctx, args) -> {
+                    try {
+                      if (node.isStatic()) ctx = classObject;
+                      ScriptObjectMirror context = (ScriptObjectMirror) ctx;
+                      Object o = context.callMember(node.getName(), args);
+                      return o;
+                    } catch (Exception e) {
+                      throw GosuExceptionUtil.forceThrow(e);
+                    }
+                  })
+                  .build(this));
+        } catch (ClassNotFoundException e) {
+          e.printStackTrace();
+        }
       }
     }
 
@@ -133,10 +137,14 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
     ArrayList<String> typesList = parameterNode.getTypes();
     ParameterInfoBuilder[] parameterInfoBuilders = new ParameterInfoBuilder[paramsList.size()];
     for (int i = 0; i < paramsList.size(); i++) {
-      String type = (typesList.get(i).equals("dynamic.Dynamic")) ? "dynamic.Dynamic" :"java.lang." + typesList.get(i);
-      parameterInfoBuilders[i] = new ParameterInfoBuilder().withName(paramsList.get(i))
-              .withDefValue(CommonServices.getGosuIndustrialPark().getNullExpressionInstance())
-              .withType(TypeSystem.getByFullName(type));
+      String type = (typesList.get(i).equals("dynamic.Dynamic")) ? "dynamic.Dynamic" :typesList.get(i);
+      try {
+        parameterInfoBuilders[i] = new ParameterInfoBuilder().withName(paramsList.get(i))
+                .withDefValue(CommonServices.getGosuIndustrialPark().getNullExpressionInstance())
+                .withType(TypeSystem.getByRelativeName(type));
+      } catch (ClassNotFoundException e) {
+        e.printStackTrace();
+      }
     }
     return parameterInfoBuilders;
   }

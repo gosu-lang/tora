@@ -49,7 +49,6 @@ public class ProgramNode extends Node
     
     FillerNode restOfProgramNode = getFirstChild(FillerNode.class);
     if (restOfProgramNode != null) code.append("\n").append(restOfProgramNode.genCode());
-    System.out.println(code.toString());
     return code.toString();
   }
 }

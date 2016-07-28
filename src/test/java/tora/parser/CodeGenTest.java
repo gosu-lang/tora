@@ -228,7 +228,6 @@ public void testStaticPropertiesInClass() {
   @Test
   public void testClassNodeMembers() throws ScriptException, NoSuchMethodException {
     engine.eval(makeSampleTree().genCode());
-    System.out.println(makeSampleTree().genCode());
     Assert.assertEquals(42,engine.eval("DemoClass.staticFoo()"));
     engine.eval("var dem = new DemoClass()");
     Assert.assertEquals(42,engine.eval("dem.bar()"));

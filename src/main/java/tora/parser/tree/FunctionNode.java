@@ -7,7 +7,7 @@ public class FunctionNode extends Node
   private String _className;
   private Boolean _isStatic = false;
   private Boolean _isOverride = false;
-
+  private String _returnType = "dynamic.Dynamic";
 
   public FunctionNode( String name )
   {
@@ -45,6 +45,10 @@ public class FunctionNode extends Node
   public void setOverride(boolean isOverride) {
     _isOverride = isOverride;
   }
+
+  public void setReturnType(String returnType){  _returnType = returnType; }
+
+  public String getReturnType() {return _returnType;}
 
 
   @Override
