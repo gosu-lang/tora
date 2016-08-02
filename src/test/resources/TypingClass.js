@@ -1,6 +1,9 @@
 
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.lang.Integer
+import java.lang.Double
+
 class TypingClass () {
    constructor(a : String) {
      this.foo = a;
@@ -14,6 +17,10 @@ class TypingClass () {
 
    doubleTest(x : Double, y : Double) {
        return x + y;
+   }
+
+   intTest(x : Double) : Integer {
+        return x;
    }
 
    stringTest(x : String, y: String) : Double {
@@ -38,6 +45,9 @@ class TypingClass () {
 
    }
 
+   doubleToStringCoercionTest(x : Double, y: Double) : String {
+       return x + y ;
+   }
    failsWhenReturningNonArrayList () : ArrayList {
         return 5.0;
    }

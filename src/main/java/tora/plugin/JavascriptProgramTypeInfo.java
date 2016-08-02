@@ -33,6 +33,8 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import tora.plugin.JavascriptCoercer;
+
 
 public class JavascriptProgramTypeInfo extends BaseTypeInfo implements ITypeInfo
 {
@@ -64,6 +66,7 @@ public class JavascriptProgramTypeInfo extends BaseTypeInfo implements ITypeInfo
         if(statement instanceof VarNode) {
           VarNode var = (VarNode) statement;
           Expression init = var.getInit();
+          JavascriptCoercer jscoerce = new JavascriptCoercer();
           if( init instanceof FunctionNode )
           {
             String name = var.getName().getPropertyName();
@@ -73,7 +76,8 @@ public class JavascriptProgramTypeInfo extends BaseTypeInfo implements ITypeInfo
                             .withParameters( makeParamList( parameters ) )
                             .withStatic()
                             .withReturnType( getDynamicType() )
-                            .withCallHandler( ( ctx, args ) -> {
+                              .withCallHandler( ( ctx, args ) -> {
+
                               try
                               {
                                 Object o = ((Invocable)_engine).invokeFunction( name, args );

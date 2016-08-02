@@ -51,6 +51,12 @@ public class ParameterTypingTest
         }
         Assert.assertTrue(succesfullyFails);
     }
+
+    @Test
+    public void intTypeTest() {
+        Assert.assertEquals(50, eval("var typeClass = new TypingClass(); return typeClass.intTest(50)"));
+
+    }
     @Test
     public void javaTypeTest() {
         //javaClassTest passes an arraylist as a parameter to another function which adds an element, and then counts its length
@@ -82,13 +88,18 @@ public class ParameterTypingTest
     @Test
     public void returnTypeTest() {
         Boolean succesfullyFails = false;
-        Assert.assertEquals(25.0, eval("var typeClass = new TypingClass(); return typeClass.returnsDouble(25.0);"));
+        Assert.assertEquals(25.0, eval("var typeClass = new TypingClass(); return typeClass.returnsDouble(25);"));
         try {
             eval("var typeClass = new TypingClass(); return typeClass.returnsWrongType(\"hi\");");
         } catch (Exception e) {
             succesfullyFails = true;
         }
         Assert.assertTrue(succesfullyFails);
+    }
+
+    @Test
+    public void coercionTypeTest() {
+        Assert.assertEquals("168.0", eval("var typeClass = new TypingClass(); return typeClass.doubleToStringCoercionTest(123,45)"));
     }
 
 

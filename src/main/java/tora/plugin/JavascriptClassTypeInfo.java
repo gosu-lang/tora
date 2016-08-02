@@ -1,11 +1,13 @@
 package tora.plugin;
 
 import gw.config.CommonServices;
+import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.*;
 import gw.util.GosuExceptionUtil;
 import jdk.nashorn.api.scripting.JSObject;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import tora.parser.tree.*;
+import tora.plugin.JavascriptCoercer;
 
 import javax.script.*;
 import java.util.*;
@@ -81,21 +83,29 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
 
   private void addMethods(ClassNode classNode) throws ScriptException {
     ScriptObjectMirror classObject = (ScriptObjectMirror) _engine.get(classNode.getName());
-
+    JavascriptCoercer coercer = new JavascriptCoercer();
     for (FunctionNode node : classNode.getChildren(FunctionNode.class)) {
       if (!node.isOverride()) {
         try {
+          TypeVarToTypeMap mapper = new TypeVarToTypeMap();
           _methods.add(new MethodInfoBuilder()
                   .withName(node.getName())
                   .withStatic(node.isStatic())
                   .withParameters(makeParamList(node.getFirstChild(ParameterNode.class)))
                   .withReturnType(TypeSystem.getByRelativeName(node.getReturnType()))
                   .withCallHandler((ctx, args) -> {
+                    for(int i = 0 ; i < args.length; i ++) {
+                      String paramType = node.getFirstChild(ParameterNode.class).getTypes().get(i);
+                      if(!paramType.equals("dynamic.Dynamic")) {
+                        args [i] = coercer.coerceTypesJavatoJS(args[i], paramType);
+                      }
+                    }
                     try {
                       if (node.isStatic()) ctx = classObject;
                       ScriptObjectMirror context = (ScriptObjectMirror) ctx;
                       Object o = context.callMember(node.getName(), args);
-                      return o;
+                      String returnType = TypeSystem.getByRelativeName(node.getReturnType()).getName();
+                      return coercer.coerceTypesJStoJava(o, returnType);
                     } catch (Exception e) {
                       throw GosuExceptionUtil.forceThrow(e);
                     }
