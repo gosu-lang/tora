@@ -62,7 +62,7 @@ public class CodeGenTest
 
   @Test
   public void testSimpleImportNode() {
-    Assert.assertEquals("var Class = Java.type(\'package.name.javaclass.Class\')",
+    Assert.assertEquals("var Class = Java.type(\'package.name.javaclass.Class\');",
             new ImportNode("package.name.javaclass.Class").genCode());
   }
 

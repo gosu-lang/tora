@@ -171,11 +171,11 @@ public class ParserTest {
     //========================================================================================
 
     private ProgramNode parse(String code) {
-        return new Parser(new Tokenizer(code)).parse();
+        return (ProgramNode) new Parser(new Tokenizer(code)).parse();
     }
 
     private ProgramNode parse(BufferedReader code) {
-        return new Parser(new Tokenizer(code)).parse();
+        return (ProgramNode) new Parser(new Tokenizer(code)).parse();
     }
 
     private ClassNode parseClass(String code) {

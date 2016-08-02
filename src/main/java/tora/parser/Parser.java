@@ -22,7 +22,7 @@ public class Parser
     return _classNode != null;
   }
 
-  public ProgramNode parse() {
+  public Node parse() {
     nextToken();
     //Can only import classes at top of program
     parseImports();
@@ -65,7 +65,7 @@ public class Parser
   }
 
 
-  private ImportNode parseImport() {
+  protected ImportNode parseImport() {
     Tokenizer.Token start = _currentToken;
     skip(matchKeyword("import"));
     StringBuilder packageName = new StringBuilder();
@@ -176,7 +176,7 @@ public class Parser
   }
 
   /*Concats parameters into a node*/
-  private ParameterNode parseParams() {
+  protected ParameterNode parseParams() {
     skip(match('('));
     ParameterNode paramNode = new ParameterNode();
 
@@ -277,6 +277,15 @@ public class Parser
     return fillerNode;
   }
 
+  protected FillerNode parseFillerUntil(Matcher matcher) {
+    FillerNode fillerNode = new FillerNode();
+    while (!(match(TokenType.EOF) || matcher.match())) {
+      fillerNode.concatToken(_currentToken);
+      nextAnyToken();
+    }
+    return fillerNode;
+  }
+
   private FillerNode parseRestOfProgram() {
     FillerNode fillerNode = new FillerNode();
     while (!match(TokenType.EOF)) {
@@ -296,20 +305,20 @@ public class Parser
   }
 
   //Used to create lambda functions for matching tokens
-  private interface Matcher {
+  protected interface Matcher {
     boolean match();
   }
 
-  private void expect(Matcher matcher) {
+  protected void expect(Matcher matcher) {
     if (!matcher.match()) expect(false);
   }
 
-  private void expect(boolean b) {
+  protected void expect(boolean b) {
     if (!b) error("Unexpected Token: " + _currentToken.toString());
   }
 
   /*assert an expectation for the current token then skip*/
-  private void skip(boolean b) {
+  protected void skip(boolean b) {
     expect(b);
     nextToken();
   }
@@ -319,27 +328,27 @@ public class Parser
   }
 
   /*Match single character punctuation*/
-  private boolean match( char c )
+  protected boolean match( char c )
   {
     return match(TokenType.PUNCTUATION, String.valueOf(c));
   }
 
   /*Match operators*/
-  private boolean matchOperator(String val )
+  protected boolean matchOperator(String val )
   {
     return match(TokenType.OPERATOR, val);
   }
 
 
   /*Match reserved keywords only*/
-  private boolean matchKeyword(String val)
+  protected boolean matchKeyword(String val)
   {
     return match(TokenType.KEYWORD, val);
   }
 
   /*Matches conditional keywords such as "constructor", which are sometimes keywords within a class
    and identifiers otherwise*/
-  private boolean matchClassKeyword(String val)
+  protected boolean matchClassKeyword(String val)
   {
     if (!match(TokenType.IDENTIFIER, val)) return false;
     //If these class keywords aren't followed by an identifier, treat them as regular identifiers
@@ -348,11 +357,11 @@ public class Parser
     return  true;
   }
 
-  private boolean match(TokenType type, String val) {
+  protected boolean match(TokenType type, String val) {
     return match(type) && _currentToken.getValue().equals(val);
   }
 
-  private boolean match( TokenType type )
+  protected boolean match( TokenType type )
   {
     return (_currentToken.getType() == type);
   }
@@ -363,6 +372,10 @@ public class Parser
       _nextToken = _tokenizer.nextNonWhiteSpace();
     }
     return _nextToken;
+  }
+
+  protected Tokenizer.Token currToken() {
+    return _currentToken;
   }
 
   private boolean isOverrideFunction(String functionName) {
@@ -382,7 +395,7 @@ public class Parser
   }
 
   /*Move current token to the next non-whitespace token*/
-  private void nextToken()
+  protected void nextToken()
   {
     if (_currentToken == null || _nextToken == null || _currentToken.getOffset() >= _nextToken.getOffset()) {
       _currentToken = _tokenizer.nextNonWhiteSpace();

@@ -1,0 +1,7 @@
+<%@ params(names) %>
+
+	This is a template that uses expressions to loop through array.
+
+	Contents of parameters: <%for (var i = 0; i < names.length; i++) {%>
+	    ${names[i]}
+    <% } %>

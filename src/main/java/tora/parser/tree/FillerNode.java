@@ -12,6 +12,7 @@ public class FillerNode extends Node
     public boolean inOverrideFunction;
   }
 
+  /*Either consists of a list of tokens or just a string of concatenated tokens*/
   private LinkedList<Tokenizer.Token> _tokens;
   private String _content;
   public Context context = new Context();

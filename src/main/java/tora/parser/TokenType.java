@@ -22,7 +22,10 @@ public enum TokenType {
     WHITESPACE,
     COMMENT,
     ERROR,
-    EOF;
+    EOF,
+    //For template files
+    RAWSTRING,
+    TEMPLATEPUNC;
 
     //Keywords taken from ecma-262 6 11.6.2.1, excluding class which is its own token
     private static final String[] KEYWORDS = {"break", "do", "in", "typeof",

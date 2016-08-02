@@ -17,7 +17,7 @@ public class ImportNode extends Node
   @Override
   public String genCode()
   {
-    return "var " + _packageClass + " = Java.type(\'" + getName() + "\')";
+    return "var " + _packageClass + " = Java.type(\'" + getName() + "\');";
   }
 
   public String getPackageClass() {
