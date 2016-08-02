@@ -1,5 +1,9 @@
 package tora.parser.tree;
 
+import gw.config.CommonServices;
+import gw.lang.reflect.ParameterInfoBuilder;
+import gw.lang.reflect.TypeSystem;
+
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
@@ -8,7 +12,6 @@ import java.util.stream.Collectors;
  */
 
 public class ParameterNode extends Node {
-    private boolean _isExpression; //can be expression (implicit return) or statement (has curlies)
     private ArrayList<String> _params;
     private ArrayList<String> _types;
 
@@ -26,14 +29,19 @@ public class ParameterNode extends Node {
         _types.add(paramType);
     }
 
-    public ArrayList<String> getParams() {
-        return _params;
+    public ParameterInfoBuilder[] toParamList () {
+        ParameterInfoBuilder[] parameterInfoBuilders = new ParameterInfoBuilder[_params.size()];
+        for (int i = 0; i < _params.size(); i++) {
+            try {
+                parameterInfoBuilders[i] = new ParameterInfoBuilder().withName(_params.get(i))
+                        .withDefValue(CommonServices.getGosuIndustrialPark().getNullExpressionInstance())
+                        .withType(TypeSystem.getByRelativeName(_types.get(i)));
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        return parameterInfoBuilders;
     }
-
-    public ArrayList<String> getTypes() {
-        return _types;
-    }
-
 
     @Override
     public String genCode()

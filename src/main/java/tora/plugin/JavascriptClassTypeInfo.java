@@ -43,7 +43,7 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
   private void addConstructor(ClassNode classNode) {
     ConstructorNode constructor = classNode.getFirstChild(ConstructorNode.class);
     ParameterInfoBuilder[] params = (constructor == null)?
-            null:makeParamList(constructor.getFirstChild(ParameterNode.class));
+            null:(constructor.getFirstChild(ParameterNode.class).toParamList());
     _constructor = new ConstructorInfoBuilder()
             .withParameters(params)
             .withConstructorHandler((args) -> {
@@ -88,7 +88,7 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
           _methods.add(new MethodInfoBuilder()
                   .withName(node.getName())
                   .withStatic(node.isStatic())
-                  .withParameters(makeParamList(node.getFirstChild(ParameterNode.class)))
+                  .withParameters((node.getFirstChild(ParameterNode.class)).toParamList())
                   .withReturnType(TypeSystem.getByRelativeName(node.getReturnType()))
                   .withCallHandler((ctx, args) -> {
                     try {
@@ -132,22 +132,7 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
     }
   }
 
-  private ParameterInfoBuilder[] makeParamList (ParameterNode parameterNode) {
-    ArrayList<String> paramsList = parameterNode.getParams();
-    ArrayList<String> typesList = parameterNode.getTypes();
-    ParameterInfoBuilder[] parameterInfoBuilders = new ParameterInfoBuilder[paramsList.size()];
-    for (int i = 0; i < paramsList.size(); i++) {
-      String type = (typesList.get(i).equals("dynamic.Dynamic")) ? "dynamic.Dynamic" :typesList.get(i);
-      try {
-        parameterInfoBuilders[i] = new ParameterInfoBuilder().withName(paramsList.get(i))
-                .withDefValue(CommonServices.getGosuIndustrialPark().getNullExpressionInstance())
-                .withType(TypeSystem.getByRelativeName(type));
-      } catch (ClassNotFoundException e) {
-        e.printStackTrace();
-      }
-    }
-    return parameterInfoBuilders;
-  }
+
 
   /*Construct a parameter list for inherited parameters. If param matches a generic type variable, make type Dynamic*/
   private ParameterInfoBuilder[] makeInheritedParamList (IMethodInfo method, IType superType) {

@@ -367,7 +367,7 @@ public class Tokenizer
   //========================================================================================
 
   //Returns the next character in the stream without updating _ch
-  private char peek() {
+  protected char peek() {
     char ahead = '\0';
     try {
       _reader.mark(1);
@@ -379,7 +379,7 @@ public class Tokenizer
     return ahead;
   }
 
-  private void nextChar() {
+  protected void nextChar() {
     try {
       _ch = (char) _reader.read();
     } catch (IOException e){
@@ -401,7 +401,12 @@ public class Tokenizer
     _bOffset = _offset;
   }
 
-  private Token newToken(TokenType type, String val) {
+
+  protected char currChar() {
+    return _ch;
+  }
+
+  protected Token newToken(TokenType type, String val) {
     return new Token(type, val, _bLineNumber, _bCol, _bOffset);
   }
 
@@ -410,7 +415,7 @@ public class Tokenizer
   }
 
 
-  private boolean reachedEOF() {
+  protected boolean reachedEOF() {
     return _ch == (char) -1;
   }
 

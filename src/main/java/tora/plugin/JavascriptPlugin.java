@@ -13,9 +13,13 @@ import gw.util.Pair;
 import gw.util.StreamUtil;
 import gw.util.concurrent.LockingLazyVar;
 import tora.parser.Parser;
+import tora.parser.TemplateParser;
+import tora.parser.TemplateTokenizer;
 import tora.parser.Tokenizer;
 import tora.parser.tree.ProgramNode;
+import tora.parser.tree.template.TemplateNode;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -26,45 +30,64 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 public class JavascriptPlugin extends TypeLoaderBase
 {
 
   private static final String JS_EXTENSION = ".js";
+  private static final String JST_EXTENSION = ".jst";
   private Set<String> _namespaces;
 
-  private final LockingLazyVar<Map<IFile, String>> _fileToName = new LockingLazyVar<Map<IFile, String>>()
+
+  private final LockingLazyVar<Map<IFile, String>> _jsFileToName = new LockingLazyVar<Map<IFile, String>>()
   {
     @Override
     protected Map<IFile, String> init()
     {
-      Map<IFile, String> result = new HashMap<>();
-      for( Pair<String, IFile> p : findAllFilesByExtension( JS_EXTENSION ) )
-      {
-        IFile file = p.getSecond();
-        String fileName = p.getFirst();
-        String fqn = fileName.substring( 0, fileName.length() - JS_EXTENSION.length() ).replace( '/', '.' );
-        result.put( file, fqn );
-      }
-      return result;
+      /*convert list of <IFile, String> to a map of file names to fully qualified names*/
+      return findAllFilesByExtension(JS_EXTENSION).stream()
+              .collect(Collectors.toMap(Pair::getSecond, p -> fileToFqn(p.getFirst(), JS_EXTENSION), (p1, p2) -> p1));
     }
   };
-  private final LockingLazyVar<Map<String, IFile>> _nameToFile = new LockingLazyVar<Map<String, IFile>>()
+
+  private final LockingLazyVar<Map<String, IFile>> _nameToJSFile = new LockingLazyVar<Map<String, IFile>>()
   {
     @Override
     protected Map<String, IFile> init()
     {
-      Map<String, IFile> result = new HashMap<>();
-      for( Pair<String, IFile> p : findAllFilesByExtension( JS_EXTENSION ) )
-      {
-        IFile file = p.getSecond();
-        String fileName = p.getFirst();
-        String fqn = fileName.substring( 0, fileName.length() - JS_EXTENSION.length() ).replace( '/', '.' );
-        result.put( fqn, file );
-      }
-      return result;
+      //invert map of file names to fully qualified names
+      return _jsFileToName.get().entrySet().stream()
+              .collect(Collectors.toMap(e -> e.getValue(), e -> e.getKey(), (e1, e2) -> e1 ));
     }
   };
+
+  private final LockingLazyVar<Map<IFile, String>> _jstFileToName = new LockingLazyVar<Map<IFile, String>>()
+  {
+    @Override
+    protected Map<IFile, String> init()
+    {
+      /*convert list of <IFile, String> to a map of file names to fully qualified names*/
+      return findAllFilesByExtension(JST_EXTENSION).stream()
+              .collect(Collectors.toMap(Pair::getSecond, p -> fileToFqn(p.getFirst(), JST_EXTENSION), (p1, p2) -> p1));
+    }
+  };
+
+  private final LockingLazyVar<Map<String, IFile>> _nameToJSTFile = new LockingLazyVar<Map<String, IFile>>()
+  {
+    @Override
+    protected Map<String, IFile> init()
+    {
+      //invert map of file names to fully qualified names
+      return _jstFileToName.get().entrySet().stream()
+              .collect(Collectors.toMap(e -> e.getValue(), e -> e.getKey(), (e1, e2) -> e1 ));
+    }
+  };
+
+  private String fileToFqn(String fileName, String extension) {
+    return fileName.substring( 0, fileName.length() - extension.length() ).replace( '/', '.' );
+  }
 
   public List<Pair<String, IFile>> findAllFilesByExtension( String extension )
   {
@@ -129,29 +152,29 @@ public class JavascriptPlugin extends TypeLoaderBase
   @Override
   public IType getType( String name )
   {
-    IFile iFile = _nameToFile.get().get( name );
-
-    if( iFile != null )
-    {
-      try
-      {
-        Parser parser = new Parser( new Tokenizer( StreamUtil.getContent( new InputStreamReader( iFile.openInputStream() ) ) ) );
-        ProgramNode programNode = parser.parse();
-        if( parser.isES6Class() )
-        {
-          return new JavascriptClassType( this, name, iFile, programNode );
-        }
-        else
-        {
-          return new JavascriptProgramType( this, name, iFile, programNode );
+    IFile iFile = _nameToJSFile.get().get( name );
+    try {
+      if (iFile == null) {
+        //check to see if JST file
+        iFile = _nameToJSTFile.get().get(name);
+        if (iFile != null) {
+          TemplateParser parser = new TemplateParser(new TemplateTokenizer(
+                 StreamUtil.getContent(new InputStreamReader(iFile.openInputStream()))));
+          return new JavascriptTemplateType(this, name, iFile, (TemplateNode) parser.parse());
         }
       }
-      catch( IOException e )
-      {
+      else {
+          Parser parser = new Parser(new Tokenizer(StreamUtil.getContent(new InputStreamReader(iFile.openInputStream()))));
+          ProgramNode programNode = (ProgramNode) parser.parse();
+          if (parser.isES6Class()) {
+            return new JavascriptClassType(this, name, iFile, programNode);
+          } else {
+            return new JavascriptProgramType(this, name, iFile, programNode);
+          }
+        }
+    } catch (IOException e) {
 
-      }
     }
-
     return null;
   }
 
@@ -194,7 +217,7 @@ public class JavascriptPlugin extends TypeLoaderBase
 
   public String[] getTypesForFile( IFile file )
   {
-    String typeName = _fileToName.get().get( file );
+    String typeName = _jsFileToName.get().get( file );
     if( typeName != null )
     {
       return new String[]{typeName};
@@ -240,8 +263,8 @@ public class JavascriptPlugin extends TypeLoaderBase
 
   private void clear()
   {
-    _nameToFile.clear();
-    _fileToName.clear();
+    _nameToJSFile.clear();
+    _jsFileToName.clear();
   }
 
   @Override
@@ -253,6 +276,6 @@ public class JavascriptPlugin extends TypeLoaderBase
   @Override
   public Set<String> computeTypeNames()
   {
-    return _nameToFile.get().keySet();
+    return _nameToJSFile.get().keySet();
   }
 }
