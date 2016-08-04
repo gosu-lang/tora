@@ -4,8 +4,6 @@ import tora.parser.Tokenizer;
 
 public class ArrowExpressionNode extends Node
 {
-
-  private boolean _isExpression; //can be expression (implicit return) or statement (has curlies)
   private String _params = "";
 
   public ArrowExpressionNode()

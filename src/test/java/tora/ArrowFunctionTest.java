@@ -22,22 +22,26 @@ public class ArrowFunctionTest
 
   @Test
   public void multipleParamsStatement() throws ScriptException {
-    assertEquals(15.0, eval("return ArrowClass.arrowReduceStatement()"));
+   // assertEquals(15.0, eval("return ArrowClass.arrowReduceStatement()"));
+    assertEquals(15.0, eval("return ArrowProgram.arrowReduceStatement()"));
   }
 
   @Test
   public void singleParamStatement() throws ScriptException {
-    Object object = eval("return ArrowClass.arrowFilterStatement()");
+    assertEquals(3, eval("return ArrowClass.arrowFilterStatement()"));
+    assertEquals(3, eval("return ArrowProgram.arrowFilterStatement()"));
   }
 
   @Test
   public void multipleParamsExpression() throws ScriptException {
     assertEquals(15.0, eval("return ArrowClass.arrowReduceExpression()"));
+    assertEquals(15.0, eval("return ArrowProgram.arrowReduceExpression()"));
   }
 
   @Test
   public void singleParamExpression() throws ScriptException {
-    Object object = eval("return ArrowClass.arrowFilterExpression()");
+    assertEquals(3, eval("return ArrowClass.arrowFilterExpression()"));
+    assertEquals(3, eval("return ArrowProgram.arrowFilterExpression()"));
   }
 
 

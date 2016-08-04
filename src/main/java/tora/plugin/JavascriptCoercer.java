@@ -1,6 +1,5 @@
 package tora.plugin;
 
-import a.c.S;
 import gw.lang.reflect.Type;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.IType;

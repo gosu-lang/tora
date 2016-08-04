@@ -31,7 +31,7 @@ public class JavascriptTemplateTypeInfo extends BaseTypeInfo implements ITypeInf
       throw GosuExceptionUtil.forceThrow( e );
     }
     _methods = new MethodList();
-    //Only one method
+    //Only one method to render template to string
     _methods.add(new MethodInfoBuilder()
             .withName("renderToString")
             .withReturnType(TypeSystem.getByFullName("java.lang.String"))
@@ -43,8 +43,10 @@ public class JavascriptTemplateTypeInfo extends BaseTypeInfo implements ITypeInf
             .build( this ) );
   }
 
+  //Calls the generated renderToString function with raw strings from template
   private String renderToString(Object ...args) {
     try {
+      //make argument list including the raw string list
       Object[] argsWithStrings = Arrays.copyOf(args, args.length + 1);
       List rawStrings =  _templateNode.getChildren(RawStringNode.class)
               .stream()

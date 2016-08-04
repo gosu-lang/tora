@@ -6,11 +6,9 @@ import tora.parser.Tokenizer;
 public class FunctionBodyNode extends Node
 {
 
-  private String _content;
-  public FunctionBodyNode( String content )
+  public FunctionBodyNode(String name)
   {
-    super( null );
-    _content = content;
+    super( name );
   }
 
 }

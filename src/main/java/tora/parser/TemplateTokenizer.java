@@ -44,7 +44,7 @@ public class TemplateTokenizer extends Tokenizer {
                 if (currChar() == '@' || currChar() == '=') {
                   punc += currChar();
                   nextChar();
-                };
+                }
                 setInStatementOrExpression();
                 break;
       //Exit punctuations

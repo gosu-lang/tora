@@ -11,11 +11,13 @@ public class Parser
   private ProgramNode _programNode;
   private Tokenizer _tokenizer;
   private Tokenizer.Token _currentToken, _nextToken;
+  private ParseContext _context;
 
   //Constructor sets the src from which the parser reads
   public Parser(Tokenizer tokenizer){
     _tokenizer = tokenizer;
     _programNode = new ProgramNode();
+    _context = new ParseContext();
   }
 
   public boolean isES6Class() {
@@ -26,8 +28,12 @@ public class Parser
     nextToken();
     //Can only import classes at top of program
     parseImports();
+    //Maybe parse class
     parseClassStatement();
-    if (!isES6Class() && !match(TokenType.EOF)) _programNode.addChild(parseRestOfProgram());
+    //Parse program otherwise
+    if (!isES6Class() && !match(TokenType.EOF)) {
+      addParseFillerUntil(_programNode, () -> match(TokenType.EOF));
+    }
     return _programNode;
   }
 
@@ -108,7 +114,7 @@ public class Parser
     skip(matchClassKeyword("constructor"));
 
     ParameterNode params = parseParams();
-    FunctionBodyNode body = parseFunctionBody(className, false);
+    FunctionBodyNode body = parseFunctionBody(className);
 
     Tokenizer.Token end = _currentToken;
     nextToken();
@@ -129,20 +135,21 @@ public class Parser
   private FunctionNode parseFunction(String className) {
     Tokenizer.Token start = _currentToken; //Name of function
     String functionName = start.getValue();
-    boolean isOverrideFunction = isOverrideFunction(functionName);
+    _context.inOverrideFunction =  isOverrideFunction(functionName);
     skip(match(TokenType.IDENTIFIER));
 
     ParameterNode params = parseParams();
     String returnType = parseReturnType();
 
-    FunctionBodyNode body = parseFunctionBody(functionName, isOverrideFunction);
+    FunctionBodyNode body = parseFunctionBody(functionName);
 
     FunctionNode functionNode = new FunctionNode(functionName, className, false);
     functionNode.setReturnType(returnType);
-    functionNode.setOverride(isOverrideFunction);
+    functionNode.setOverride(_context.inOverrideFunction);
     functionNode.setTokens(start, _currentToken);
     functionNode.addChild(params);
     functionNode.addChild(body);
+    _context.inOverrideFunction = false;
     nextToken();
     return functionNode;
 
@@ -165,7 +172,7 @@ public class Parser
     skip(match(TokenType.IDENTIFIER));
 
     ParameterNode params = parseParams();
-    FunctionBodyNode body = parseFunctionBody(functionName, false);
+    FunctionBodyNode body = parseFunctionBody(functionName);
 
     PropertyNode node = new PropertyNode(functionName, className, false, isSetter);
     node.setTokens(start, _currentToken);
@@ -180,7 +187,6 @@ public class Parser
     skip(match('('));
     ParameterNode paramNode = new ParameterNode();
 
-    StringBuilder val = new StringBuilder();
     Matcher matcher = () -> match(')') || match(TokenType.IDENTIFIER);
     expect(matcher);
     while (!match(')') && !match(TokenType.EOF)) {
@@ -207,11 +213,9 @@ public class Parser
   private String parseReturnType() {
     if(_currentToken.getValue().equals(":")) {
       nextToken();
-//      if(match(TokenType.IDENTIFIER)) {
         String returnType = _currentToken.getValue();
         nextToken();
         return returnType;
-//      }
     }
     return "dynamic.Dynamic";
 
@@ -225,70 +229,42 @@ public class Parser
   private String parseType() {
     if(peekToken().getValue().equals(":")) {
       nextToken();
-//      if(match(TokenType.IDENTIFIER)) {
-        nextToken();
-        return _currentToken.getValue();
-//      }
+      nextToken();
+      return _currentToken.getValue();
     }
     return null;
 
   }
 
-  private FunctionBodyNode parseFunctionBody(String functionName, boolean isOverrideFunction) {
+  private FunctionBodyNode parseFunctionBody(String functionName) {
     FunctionBodyNode bodyNode = new FunctionBodyNode(functionName);
-    FillerNode fillerNode = new FillerNode();
-    fillerNode.context.inOverrideFunction = isOverrideFunction;
-    expect(match('{'));
-    fillerNode.concatToken(_currentToken); // '{'
-    int curlyCount = 1;
-    while (curlyCount > 0 && !match(TokenType.EOF)) {
-      nextAnyToken();
-      if (match('}')) curlyCount--;
-      if (match('{')) curlyCount++;
-
-      if (matchOperator("=>")){
-        skip(matchOperator("=>"));
-        ArrowExpressionNode arrowNode = new ArrowExpressionNode();
-        arrowNode.extractParams(fillerNode);
-        //Add filler node and create a new one
-        bodyNode.addChild(fillerNode);
-        fillerNode = new FillerNode();
-        if (match('{')) {
-          arrowNode.addChild(parseFunctionBody(null, false));
-          expect(match('}'));
-        } else {
-          arrowNode.addChild(parseExpression());
-        }
-        bodyNode.addChild(arrowNode);
-      } else {
-        fillerNode.concatToken(_currentToken);
-      }
-    }
-    bodyNode.addChild(fillerNode);
+    int currCurlyCount = _context.getCurlyCount() - 1;
+    addParseFillerUntil(bodyNode, () -> _context.getCurlyCount() <= currCurlyCount);
+    FillerNode lastCurly = new FillerNode();
+    lastCurly.concatToken(_currentToken);
+    bodyNode.addChild(lastCurly);
     return bodyNode;
   }
 
-  private FillerNode parseExpression() {
-    FillerNode fillerNode = new FillerNode();
-    while (!(match(TokenType.EOF) || match(';'))) {
-      fillerNode.concatToken(_currentToken);
-      nextAnyToken();
+  private void addParseFillerUntil(Node parent, Matcher matcher) {
+    FillerNode fillerNode = parseFillerUntil(() -> matchOperator("=>")  || matcher.match());
+    if (matchOperator("=>")) {
+      skip(matchOperator("=>"));
+      ArrowExpressionNode arrowNode = new ArrowExpressionNode();
+      arrowNode.extractParams(fillerNode);
+      //Add filler node and create a new one
+      parent.addChild(fillerNode);
+      parent.addChild(arrowNode);
+      addParseFillerUntil(parent, matcher);
+    } else {
+      parent.addChild(fillerNode);
     }
-    return fillerNode;
   }
 
+  //Concatenate tokens onto a filler node until a token is matched
   protected FillerNode parseFillerUntil(Matcher matcher) {
-    FillerNode fillerNode = new FillerNode();
+    FillerNode fillerNode = new FillerNode(_context.inOverrideFunction);
     while (!(match(TokenType.EOF) || matcher.match())) {
-      fillerNode.concatToken(_currentToken);
-      nextAnyToken();
-    }
-    return fillerNode;
-  }
-
-  private FillerNode parseRestOfProgram() {
-    FillerNode fillerNode = new FillerNode();
-    while (!match(TokenType.EOF)) {
       fillerNode.concatToken(_currentToken);
       nextAnyToken();
     }
@@ -392,6 +368,8 @@ public class Parser
   /*Move current token to the next token (including whitespace)*/
   private void nextAnyToken() {
     _currentToken = _tokenizer.next();
+    if (match('{')) _context.curlyCount++;
+    if (match('}')) _context.curlyCount--;
   }
 
   /*Move current token to the next non-whitespace token*/
@@ -402,5 +380,7 @@ public class Parser
     } else {
       _currentToken = _nextToken;
     }
+    if (match('{')) _context.curlyCount++;
+    if (match('}')) _context.curlyCount--;
   }
 }

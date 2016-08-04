@@ -10,8 +10,6 @@ public class TemplateParser extends Parser
 {
   private TemplateNode _templateNode;
 
-  private String _src;
-
   public TemplateParser(Tokenizer tokenizer) {
     super(tokenizer);
   }

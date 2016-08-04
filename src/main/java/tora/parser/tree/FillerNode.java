@@ -8,19 +8,23 @@ import java.util.LinkedList;
 /*(Hopefully) Temporary Node to hold tokens that we don't parse and blindly concatenate*/
 public class FillerNode extends Node
 {
-  public class Context {
-    public boolean inOverrideFunction;
-  }
 
   /*Either consists of a list of tokens or just a string of concatenated tokens*/
   private LinkedList<Tokenizer.Token> _tokens;
   private String _content;
-  public Context context = new Context();
+  boolean _inOverrideFunction;
 
   public FillerNode()
   {
     super( null );
     _tokens = new LinkedList<>();
+  }
+
+  public FillerNode(boolean inOverrideFunction)
+  {
+    super( null );
+    _tokens = new LinkedList<>();
+    _inOverrideFunction = inOverrideFunction;
   }
 
   public FillerNode(String content)
@@ -54,7 +58,7 @@ public class FillerNode extends Node
       //Replace super with Java.super(_superClassObject) to support java-style super
       if (token.getType() == TokenType.KEYWORD && token.getValue().equals("super")) {
         //needs "this._superClassObject" to reference super if not function does not override
-        code.append("Java.super(" + (context.inOverrideFunction?"":"this.") + ClassNode.SUPERTYPE_OBJECT + ")");
+        code.append("Java.super(" + (_inOverrideFunction?"":"this.") + ClassNode.SUPERTYPE_OBJECT + ")");
       } else {
         code.append(token.getValue());
       }

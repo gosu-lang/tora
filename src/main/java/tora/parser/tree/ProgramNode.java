@@ -34,21 +34,4 @@ public class ProgramNode extends Node
      return null;
   }
 
-  @Override
-  public String genCode()
-  {
-    StringBuilder code = new StringBuilder(); //Makes sure constructor is called correctly
-
-    for (ImportNode node : getChildren(ImportNode.class)) {
-      code.append("\n").append(node.genCode());
-    }
-
-    //Should be limited to one class per program node
-    ClassNode classNode = getFirstChild(ClassNode.class);
-    if (classNode != null) code.append("\n").append(classNode.genCode());
-    
-    FillerNode restOfProgramNode = getFirstChild(FillerNode.class);
-    if (restOfProgramNode != null) code.append("\n").append(restOfProgramNode.genCode());
-    return code.toString();
-  }
 }
