@@ -29,6 +29,9 @@ public class ParameterNode extends Node {
         _types.add(paramType);
     }
 
+    public ArrayList<String> getTypes() {
+        return _types;
+    }
     public ParameterInfoBuilder[] toParamList () {
         ParameterInfoBuilder[] parameterInfoBuilders = new ParameterInfoBuilder[_params.size()];
         for (int i = 0; i < _params.size(); i++) {

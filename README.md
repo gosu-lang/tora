@@ -238,3 +238,33 @@ allows for multi-threading, the implementation is very slow when it comes to cre
 and deleting objects. 
 
 Users should not attempt to access any Nashorn objects from multiple threads.
+
+
+##Typescript Style Typing
+
+In order to allow for greater control and readability, tora allows for specifying the types of variables that can
+be parameters and return types. The supported types include any in the standard java.lang.* package, however those found
+in the java.util.* packages must be imported.
+
+Javascript
+
+    import java.util.ArrayList;
+    class Sample {
+        constructor(a : String) {
+            this.foo = a;
+        }
+
+        foo (bar: String, baz : Integer) : ArrayList {
+           var arrlist = new ArrayList();
+           for(var i = 0 ; i < baz ; i ++) {
+               arrlist.add(bar);
+           }
+           return arrlist;
+        }
+    }
+
+
+Gosu
+    var sample = new Sample();
+    print(foo("Hello", 5)) // ["Hello","Hello","Hello","Hello","Hello"]
+

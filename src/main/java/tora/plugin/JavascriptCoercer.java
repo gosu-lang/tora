@@ -33,6 +33,10 @@ public class JavascriptCoercer {
             return ((Double) o).toString();
         }));
 
+        addJavatoJSCoercer("Integer", "Double", (o -> {
+            return ((Integer) o).doubleValue();
+        }));
+
     }
 
     /* function: addJStoJavaCoercer
