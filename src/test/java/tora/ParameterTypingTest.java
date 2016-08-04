@@ -98,11 +98,15 @@ public class ParameterTypingTest
     }
 
     @Test
-    public void coercionTypeTest() {
+    public void coercionJSToJavaTypeTest() {
         Assert.assertEquals("168.0", eval("var typeClass = new TypingClass(); return typeClass.doubleToStringCoercionTest(123,45)"));
     }
 
 
+    @Test
+    public void coercionJavaToJSTypeTest() {
+        Assert.assertEquals(123.0, eval("var typeClass = new TypingClass(); return typeClass.takesInDoubleAndReturns(123)"));
+    }
     private ProgramNode parse(String code) {
         return (ProgramNode) new Parser(new Tokenizer(code)).parse();
     }

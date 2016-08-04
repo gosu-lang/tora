@@ -59,4 +59,8 @@ class TypingClass () {
        return x;
    }
 
+   takesInDoubleAndReturns(x : Double) {
+       return x;
+   }
+
 }
