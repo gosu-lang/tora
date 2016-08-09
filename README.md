@@ -168,7 +168,35 @@ Gosu
     var foo = new Foo();
     foo.bars = 21;
     print(foo.bars) // Prints 42 
-    
+
+## Javascript Template Support
+
+Javascript templates are supported as first class citizens. A Javascript String Template is a file that ends
+in the .jst extension.
+
+Javascript Template: SampleJSTemplate.jst
+
+    <%@ params(names) %>
+
+    All Names: <% for (var i = 0; i < names.length; i++) { %>
+        ${names[i]}
+    <% } %>
+
+The template declares the parameters using the `<%@ params() %>` directive, and can import Java/Gosu classes using
+the <%@ import %> directive.
+
+Javascript statements can be added between the `<%` and `%>` punctuators, which are evaluated as Javascript but
+added directly to the generated string.
+
+Javascript expressions can be added either between the `${` and `}` punctuators or the `<%=` and `%>` punctuators,
+and are evaluated and added to the generated string.
+
+Javascript templates can then be rendered from Gosu as so:
+
+Gosu:
+
+    var str = SampleJSTemplate.renderToString({"Carson", "Kyle", Lucca"});
+    print(str)
 
 ## Accessing Javascript Classes from Gosu
 
@@ -239,8 +267,9 @@ and deleting objects.
 
 Users should not attempt to access any Nashorn objects from multiple threads.
 
+## Javascript Extensions
 
-##Typescript Style Typing
+### Typescript Style Typing
 
 In order to allow for greater control and readability, tora allows for specifying the types of variables that can
 be parameters and return types. The supported types include any in the standard java.lang.* package, however those found
@@ -262,6 +291,23 @@ Javascript
            return arrlist;
         }
     }
+
+### ES6 Arrow Functions
+
+Tora supports the use of ES6 Arrow Functions inside any Javascript program or class.
+
+Javascript:
+
+    //Arrow function expression
+    function filterEvens(list) {
+        return list.filter( a => a % 2 == 0);
+    }
+
+    //Arrow function statements
+    function incrementList(list) {
+        return list.map( a => {return a + 1});
+    }
+
 
 
 Gosu
