@@ -19,9 +19,11 @@ are accessible as static methods on the program type.
 
 Here is an example top-level function found in `ExampleProgram.js`:
 
+```javascript
     function hello(name) {
         return "Hello " + name;
     }
+```
     
 This function could be invoked from Gosu like so:
 
@@ -36,16 +38,20 @@ Parameters and the return type of javascript functions are all of type `dynamic.
 Top level variables in javascript programs are treated as global variables and will retain their values
 between evaluation.  Given this function:
 
+```javascript
     var i = 0;
     
     function nextNum() {
         return i++;
     }
+```
 
 The following code
 
+```javascript
     print( ExampleProgram.nextNum() )
     print( ExampleProgram.nextNum() )
+```
 
 will print
 
@@ -59,6 +65,7 @@ including constructors, methods, static methods, and properties.
 
 Javascript: foo.js
 
+```javascript
     class Foo {
 
         //Constructor
@@ -91,17 +98,20 @@ Javascript: foo.js
         }
 
     }
+```
 
 ####  Constructor 
 The constructor is called when a new object is created. It initializes the properties within the object.
 
 Javascript
 
+```javascript
     class Foo {
         constructor(a) {
             this.bar = a;
         }
     }
+```
 
 Gosu
     
@@ -112,6 +122,7 @@ Methods are functions that are assigned to classes. They can interact with prope
 internal methods. 
 Javascript
 
+```javascript
     class Foo {
 
         constructor(a) {
@@ -122,15 +133,19 @@ Javascript
             return this.foo * 2;
         }
     }
+```
 
 Gosu
 
+```javascript
     var foo = new Foo(21);
     print(foo.bar); // returns 42 
+```
 #### Static Methods
 
 Javascript
 
+```javascript
     class Foo {
         constructor(a) {
             this.foo = a;
@@ -141,14 +156,18 @@ Javascript
             return 42;
         }
     }
+```
     
 Gosu
 
+```javascript
     print(Foo.staticFoo()); // Prints  42
-    
+```
+
 #### Properties
 Classes can have getter and setter properties which abstract the properties held within the class.
-    
+
+```javascript
     class Foo {
         constructor(a) {
             this.foo = a;
@@ -162,12 +181,15 @@ Classes can have getter and setter properties which abstract the properties held
             this._bars = a;
         }
     }
+```
 
 Gosu 
 
+```javascript
     var foo = new Foo();
     foo.bars = 21;
     print(foo.bars) // Prints 42 
+```
 
 ## Javascript Template Support
 
@@ -195,8 +217,12 @@ Javascript templates can then be rendered from Gosu as so:
 
 Gosu:
 
+```javascript
+
     var str = SampleJSTemplate.renderToString({"Carson", "Kyle", Lucca"});
     print(str)
+
+```
 
 ## Accessing Javascript Classes from Gosu
 
@@ -204,6 +230,7 @@ Javascript classes can be accessed using the same syntax as Gosu classes.
 
 Gosu:
 
+```javascript
     var foo = new Foo(10);
     print(foo.bar()); // 20
     print(foo.bars); // 5
@@ -211,6 +238,7 @@ Gosu:
     foo.bars = 20;
     print(foo.bars) // 40
     print(Foo.hello()) // Hello
+```
 
 ### Accessing Gosu & Java Classes from Javascript
 
@@ -218,6 +246,7 @@ The (non-standard javascript) import statement is used to extend gosu and java c
 
 Here is some example javascript: hello.js
 
+```javascript
     import java.util.ArrayList;
 
     function hello() {
@@ -227,10 +256,13 @@ Here is some example javascript: hello.js
         arrlist.add(3);
         print(arrlist.toArray(new Integer[arrlist.size()]));
     }
+```
 
 This can be invoked from Gosu like so:
 
+```javascript
     hello.hello(); //prints [1,2,3]
+```
 
 The import statement in tora acts like the java import statement, not the (unsupported) javascript version.
 
@@ -241,7 +273,7 @@ known limitation is that the constructor of the superclass cannot be overwritten
 
 Javascript
 
-
+```javascript
     import java.util.ArrayList;
 
     class sizePrints extends ArrayList {
@@ -249,15 +281,17 @@ Javascript
             print(super.size());
         }
     }
+```
 
 Gosu:
 
+```javascript
     var sizePrintsArrayList = new sizePrints();
     sizePrintsArrayList.add(1);
     sizePrintsArrayList.add(2);
     sizePrintsArrayList.add(3);
     sizePrintsArrayList.size(); // Prints 3
-
+```
 
 ## Multi-threading Support
 
@@ -277,6 +311,7 @@ in the java.util.* packages must be imported.
 
 Javascript
 
+```javascript
     import java.util.ArrayList;
     class Sample {
         constructor(a : String) {
@@ -291,6 +326,13 @@ Javascript
            return arrlist;
         }
     }
+```
+
+```javascript
+Gosu
+    var sample = new Sample();
+    print(foo("Hello", 5)) // ["Hello","Hello","Hello","Hello","Hello"]
+```
 
 ### ES6 Arrow Functions
 
@@ -298,6 +340,7 @@ Tora supports the use of ES6 Arrow Functions inside any Javascript program or cl
 
 Javascript:
 
+```javascript
     //Arrow function expression
     function filterEvens(list) {
         return list.filter( a => a % 2 == 0);
@@ -307,10 +350,7 @@ Javascript:
     function incrementList(list) {
         return list.map( a => {return a + 1});
     }
+```
 
 
-
-Gosu
-    var sample = new Sample();
-    print(foo("Hello", 5)) // ["Hello","Hello","Hello","Hello","Hello"]
 
