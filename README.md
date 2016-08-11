@@ -200,7 +200,7 @@ Javascript Template: SampleJSTemplate.jst
 
     <%@ params(names) %>
 
-    All Names: <% for (var i = 0; i < names.length; i++) { %>
+    All Names: <% '''javascript for (var i = 0; i < names.length; i++) { '''%>
         ${names[i]}
     <% } %>
 
@@ -219,7 +219,7 @@ Gosu:
 
 ```javascript
 
-    var str = SampleJSTemplate.renderToString({"Carson", "Kyle", Lucca"});
+    var str = SampleJSTemplate.renderToString({"Carson", "Kyle", "Lucca"});
     print(str)
 
 ```
