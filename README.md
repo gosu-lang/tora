@@ -200,7 +200,7 @@ Javascript Template: SampleJSTemplate.jst
 
     <%@ params(names) %>
 
-    All Names: <% '''javascript for (var i = 0; i < names.length; i++) { '''%>
+    All Names: <%for (var i = 0; i < names.length; i++) { %>
         ${names[i]}
     <% } %>
 
