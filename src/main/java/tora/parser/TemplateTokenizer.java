@@ -1,16 +1,34 @@
 package tora.parser;
 
+import java.util.HashMap;
+import java.util.Stack;
+
 public class TemplateTokenizer extends Tokenizer {
 
   private boolean inRawString;
   private boolean inStatementOrExpression;
+  private boolean _isJST; //true if a JST template file, false if a template literal in a JS file
+  private String exprStart; //token that enters an expressionOrStatement
+  private HashMap <String, String> puncEnterExitMap; //maps enter punctuation to exit punctuation (ex: "${" : "}")
+  private Stack<String> curlyStack; //used to match curlies when exiting an expression
 
-  private String expressionOrStatementStart; //token that enters an expressionOrStatement
-
-  public TemplateTokenizer(String source) {
+  public TemplateTokenizer(String source, boolean isJST) {
     super(source);
+    _isJST = isJST;
     inRawString = true;
     inStatementOrExpression = false;
+    curlyStack = new Stack<>();
+    puncEnterExitMap = new HashMap<>();
+    puncEnterExitMap.put("${", "}");
+    if (isJST) {
+        puncEnterExitMap.put("<%", "%>");
+        puncEnterExitMap.put("<%=", "%>");
+        puncEnterExitMap.put("<%@", "%>");
+    }
+  }
+
+  public boolean isJST() {
+      return _isJST;
   }
 
   @Override
@@ -22,7 +40,10 @@ public class TemplateTokenizer extends Tokenizer {
       toke = consumeRawString();
     } else if (inStatementOrExpression){
       if (checkForExpressionExit()) return consumeTemplatePunc(); //transition from expression to rawstring
-      return super.next(); //if in statement, tokenize as normal
+      Token supe = super.next();
+      if (supe.getType() == TokenType.PUNCTUATION && supe.getValue().equals("}")) curlyStack.pop();
+      if (supe.getType() == TokenType.PUNCTUATION && supe.getValue().equals("{")) curlyStack.push("{");
+      return supe; //if in statement, tokenize as normal
     } else {
       toke = consumeTemplatePunc(); //transition from rawstring to expression; ${, <%, <%@, or <%=
     }
@@ -37,6 +58,7 @@ public class TemplateTokenizer extends Tokenizer {
                 punc += currChar(); //should be '{'
                 nextChar();
                 setInStatementOrExpression();
+                curlyStack.push("${");
                 break;
       case '<': nextChar();
                 punc += currChar();
@@ -57,7 +79,7 @@ public class TemplateTokenizer extends Tokenizer {
                 setInRawString();
                 break;
     }
-    if (inStatementOrExpression) expressionOrStatementStart = punc;
+    if (inStatementOrExpression) exprStart = punc;
     return newToken(TokenType.TEMPLATEPUNC, punc);
   }
 
@@ -68,7 +90,11 @@ public class TemplateTokenizer extends Tokenizer {
         inRawString = false;
         break;
       }
-      val.append(currChar());
+      if (!_isJST && TokenType.isLineTerminator(currChar())) {
+          val.append("\\n"); //escape newlines since template literals can be multiline
+      } else {
+          val.append(currChar());
+      }
       nextChar();
     }
     return newToken(TokenType.RAWSTRING, val.toString());
@@ -79,14 +105,15 @@ public class TemplateTokenizer extends Tokenizer {
     if (currChar() == '\\' && (peek() == '<' || peek() == '$')) {
         nextChar(); return false;
     }
-    if (currChar() == '<' && peek() == '%') return true;
-    if (currChar() == '$' && peek() == '{') return true;
-    return false;
+
+    exprStart = (puncEnterExitMap.get(String.valueOf(currChar()) + peek()));
+    return exprStart != null;
   }
 
   private boolean checkForExpressionExit() {
-    if (expressionOrStatementStart.equals("${") && currChar() == '}') return true;
-    if (!expressionOrStatementStart.equals("${") && currChar() == '%' && peek() == '>') return true;
+    //'}' only exits expression if it matches with at the top of the stack ${
+    if (exprStart.equals("${") && currChar() == '}' && curlyStack.peek().equals("${")) return true;
+    if (!exprStart.equals("${") && currChar() == '%' && peek() == '>') return true;
     return false;
   }
 
@@ -99,5 +126,6 @@ public class TemplateTokenizer extends Tokenizer {
     inStatementOrExpression = true;
     inRawString = false;
   }
+
 
 }

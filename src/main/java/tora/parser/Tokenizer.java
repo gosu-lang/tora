@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 public class Tokenizer
 {
@@ -77,6 +78,7 @@ public class Tokenizer
   private BufferedReader _reader;
   private char _ch;
 
+
   public Tokenizer(String text) {
     this(new BufferedReader(new StringReader(text)));
   }
@@ -106,6 +108,8 @@ public class Tokenizer
       ret = consumeWhitespace();
     } else if (_ch == '\'' || _ch == '"') {
       ret = consumeString();
+    } else if (_ch == '`'){
+      ret = consumeTemplateString();
     } else if (TokenType.startsIdentifier(_ch)) {
       ret = consumeWord();
     } else if (_ch == '.') {
@@ -247,6 +251,21 @@ public class Tokenizer
     nextChar();
     if (errorMsg != null) return errToken(val.toString(), errorMsg);
     return newToken(TokenType.STRING, val.toString());
+  }
+
+  /* Consume template string as a entire raw string. Template tokenizing and parsing are handled
+    in the parser
+   */
+  private Token consumeTemplateString() {
+    nextChar(); //skip over `
+    StringBuilder val = new StringBuilder();
+    while (!(_ch == '`')) {
+      if (reachedEOF()) return errToken(val.toString(), "unterminated string template");
+      val.append(_ch);
+      nextChar();
+    }
+    nextChar();//skip over closing backtick
+    return newToken(TokenType.TEMPLATESTRING, val.toString());
   }
 
   /*Helper to consume and validate escape sequences;

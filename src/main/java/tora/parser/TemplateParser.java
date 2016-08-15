@@ -1,23 +1,21 @@
 package tora.parser;
 
 import tora.parser.tree.*;
-import tora.parser.tree.template.ExpressionNode;
-import tora.parser.tree.template.RawStringNode;
-import tora.parser.tree.template.StatementNode;
-import tora.parser.tree.template.TemplateNode;
+import tora.parser.tree.template.*;
 
 public class TemplateParser extends Parser
 {
-  private TemplateNode _templateNode;
+  private Node _templateNode;
 
-  public TemplateParser(Tokenizer tokenizer) {
+  public TemplateParser(TemplateTokenizer tokenizer) {
     super(tokenizer);
+    if (tokenizer.isJST()) _templateNode = new JSTNode();
+    else _templateNode = new TemplateLiteralNode();
   }
 
   @Override
   public Node parse() {
     nextToken();
-    _templateNode = new TemplateNode();
     while (!match(TokenType.EOF)) {
       if (match(TokenType.RAWSTRING)) {
         _templateNode.addChild(new RawStringNode(currToken().getValue()));
@@ -31,9 +29,6 @@ public class TemplateParser extends Parser
         _templateNode.addChild(parseTemplateStatement());
       }
     }
-    ParameterNode parameterNode = new ParameterNode();
-    parameterNode.addParam("sup", null);
-    _templateNode.addChild(parameterNode);
     return _templateNode;
   }
 

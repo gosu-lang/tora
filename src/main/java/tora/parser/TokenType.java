@@ -25,7 +25,8 @@ public enum TokenType {
     EOF,
     //For template files
     RAWSTRING,
-    TEMPLATEPUNC;
+    TEMPLATEPUNC,
+    TEMPLATESTRING;
 
     //Keywords taken from ecma-262 6 11.6.2.1, excluding class which is its own token
     private static final String[] KEYWORDS = {"break", "do", "in", "typeof",

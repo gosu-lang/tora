@@ -4,7 +4,7 @@ import gw.lang.reflect.*;
 import gw.util.GosuExceptionUtil;
 import tora.parser.tree.ParameterNode;
 import tora.parser.tree.template.RawStringNode;
-import tora.parser.tree.template.TemplateNode;
+import tora.parser.tree.template.JSTNode;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
@@ -18,9 +18,9 @@ public class JavascriptTemplateTypeInfo extends BaseTypeInfo implements ITypeInf
 {
   private final ScriptEngine _engine;
   private final MethodList _methods;
-  private final TemplateNode _templateNode;
+  private final JSTNode _templateNode;
 
-  public JavascriptTemplateTypeInfo(JavascriptTemplateType javascriptType, TemplateNode templateNode)
+  public JavascriptTemplateTypeInfo(JavascriptTemplateType javascriptType, JSTNode templateNode)
   {
     super( javascriptType );
     _templateNode = templateNode;

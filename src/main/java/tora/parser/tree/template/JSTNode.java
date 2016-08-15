@@ -8,10 +8,12 @@ import tora.parser.tree.ParameterNode;
 import java.util.LinkedList;
 import java.util.List;
 
-/*Serves as the root for template files. Generates a function with the template parameters as well as a placeholder
+/*Serves as the root for template files (.jst) . Generates a function with the template parameters as well as a
+placeholder
 parameter for the raw strings that will be passed in when called from the call handler
  */
-public class TemplateNode extends Node
+
+public class JSTNode extends Node
 {
   //boiler plate code for constructing string
   private final String STR_BUILDER = "_strTemplateBuilder"; //javascript variable that builds and returns string
@@ -23,7 +25,7 @@ public class TemplateNode extends Node
   private final String TEMPLATE_FOOTER =
           "\n\treturn " + STR_BUILDER + ";\n}";
 
-  public TemplateNode()
+  public JSTNode()
   {
     super( null );
   }

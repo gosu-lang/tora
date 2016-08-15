@@ -17,20 +17,17 @@ import tora.parser.TemplateParser;
 import tora.parser.TemplateTokenizer;
 import tora.parser.Tokenizer;
 import tora.parser.tree.ProgramNode;
-import tora.parser.tree.template.TemplateNode;
+import tora.parser.tree.template.JSTNode;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class JavascriptPlugin extends TypeLoaderBase
@@ -159,8 +156,8 @@ public class JavascriptPlugin extends TypeLoaderBase
         iFile = _nameToJSTFile.get().get(name);
         if (iFile != null) {
           TemplateParser parser = new TemplateParser(new TemplateTokenizer(
-                 StreamUtil.getContent(new InputStreamReader(iFile.openInputStream()))));
-          return new JavascriptTemplateType(this, name, iFile, (TemplateNode) parser.parse());
+                 StreamUtil.getContent(new InputStreamReader(iFile.openInputStream())), true));
+          return new JavascriptTemplateType(this, name, iFile, (JSTNode) parser.parse());
         }
       }
       else {

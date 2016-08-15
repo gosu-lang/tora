@@ -4,6 +4,7 @@ import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import tora.parser.tree.*;
+import tora.parser.tree.template.JSTNode;
 
 public class Parser
 {
@@ -246,17 +247,31 @@ public class Parser
     return bodyNode;
   }
 
+  /*Parses filler code and adds onto parent, as well watching for es6 features such as arrow functions
+   and string templates
+    */
   private void addParseFillerUntil(Node parent, Matcher matcher) {
-    FillerNode fillerNode = parseFillerUntil(() -> matchOperator("=>")  || matcher.match());
-    if (matchOperator("=>")) {
+    FillerNode fillerNode = parseFillerUntil(() -> matchOperator("=>")
+            || match(TokenType.TEMPLATESTRING)
+            || matcher.match());
+    if (matchOperator("=>")) //Pause when seeing an arrow so we can add an arrow node
+    {
       skip(matchOperator("=>"));
       ArrowExpressionNode arrowNode = new ArrowExpressionNode();
       arrowNode.extractParams(fillerNode);
       //Add filler node and create a new one
       parent.addChild(fillerNode);
       parent.addChild(arrowNode);
-      addParseFillerUntil(parent, matcher);
+      addParseFillerUntil(parent, matcher); //continue parsing filler after consuming arrow node
+    } else if (match(TokenType.TEMPLATESTRING)) {
+      TemplateParser templateParser = new TemplateParser(new TemplateTokenizer(currToken().getValue(), false));
+      Node templateNode = templateParser.parse();
+      parent.addChild(fillerNode);
+      parent.addChild(templateNode);
+      nextToken();
+      addParseFillerUntil(parent, matcher); //continue parsing filler after consuming template string
     } else {
+      //reached the end token passed in to the argument; end parsing filler
       parent.addChild(fillerNode);
     }
   }
