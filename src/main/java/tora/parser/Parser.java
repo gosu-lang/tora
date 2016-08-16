@@ -102,7 +102,8 @@ public class Parser
       } else if (matchClassKeyword("get") || matchClassKeyword("set")) {
         _classNode.addChild(parseProperty(className));
       } else if (match(TokenType.IDENTIFIER)) {
-        _classNode.addChild(parseFunction(className));
+        ClassFunctionNode functionNode = parseClassFunction(className);
+        _classNode.addChild(functionNode);
       } else {
         error("Unexpected token: " + _currentToken.toString());
         nextToken();
@@ -126,34 +127,54 @@ public class Parser
     return constructorNode;
   }
 
-  private FunctionNode parseStaticFunction(String className, Tokenizer.Token staticToken) {
-    FunctionNode functionNode = parseFunction(className);
+  private ClassFunctionNode parseStaticFunction(String className, Tokenizer.Token staticToken) {
+    ClassFunctionNode functionNode = (ClassFunctionNode) parseFunction(className);
     functionNode.setTokens(staticToken, functionNode.getEnd());
     functionNode.setStatic(true);
+    return functionNode;
+  }
+
+  private ClassFunctionNode parseClassFunction(String className) {
+    expect(match(TokenType.IDENTIFIER)); //name of function
+    _context.inOverrideFunction = isOverrideFunction(_currentToken.getValue());
+    ClassFunctionNode functionNode = (ClassFunctionNode) parseFunction(className);
+    functionNode.setOverride(_context.inOverrideFunction);
+    _context.inOverrideFunction = false;
     return functionNode;
   }
 
   private FunctionNode parseFunction(String className) {
     Tokenizer.Token start = _currentToken; //Name of function
     String functionName = start.getValue();
-    _context.inOverrideFunction =  isOverrideFunction(functionName);
     skip(match(TokenType.IDENTIFIER));
 
-    ParameterNode params = parseParams();
-    String returnType = parseReturnType();
+    FunctionNode functionNode;
+    if (className != null) {
+      functionNode = new ClassFunctionNode(functionName, className, false);
+    }
+    else  {
+      functionNode = new FunctionNode(functionName, className, false);
+    }
 
-    FunctionBodyNode body = parseFunctionBody(functionName);
-
-    FunctionNode functionNode = new FunctionNode(functionName, className, false);
-    functionNode.setReturnType(returnType);
-    functionNode.setOverride(_context.inOverrideFunction);
-    functionNode.setTokens(start, _currentToken);
-    functionNode.addChild(params);
-    functionNode.addChild(body);
-    _context.inOverrideFunction = false;
+    addParseFunctionParamAndBody(functionNode);
     nextToken();
     return functionNode;
 
+  }
+
+  /*starting from the opening parens for function parameters, parses the function params, return type,
+  and function body, and appends to the parent
+   */
+  private void addParseFunctionParamAndBody(FunctionNode parent) {
+    ParameterNode params = parseParams();
+    String returnType = parseReturnType();
+
+    FunctionBodyNode body = parseFunctionBody(parent.getName());
+    parent.setReturnType(returnType);
+    expect(match('}'));
+    parent.setTokens(parent.getStart(), _currentToken);
+    parent.addChild(params);
+    parent.addChild(body);
   }
 
 
@@ -253,8 +274,10 @@ public class Parser
   private void addParseFillerUntil(Node parent, Matcher matcher) {
     FillerNode fillerNode = parseFillerUntil(() -> matchOperator("=>")
             || match(TokenType.TEMPLATESTRING)
+            || (matchKeyword("function") && _context.curlyCount == 0)
             || matcher.match());
-    if (matchOperator("=>")) //Pause when seeing an arrow so we can add an arrow node
+    //Pause when seeing an arrow so we can add an arrow node
+    if (matchOperator("=>"))
     {
       skip(matchOperator("=>"));
       ArrowExpressionNode arrowNode = new ArrowExpressionNode();
@@ -263,14 +286,25 @@ public class Parser
       parent.addChild(fillerNode);
       parent.addChild(arrowNode);
       addParseFillerUntil(parent, matcher); //continue parsing filler after consuming arrow node
-    } else if (match(TokenType.TEMPLATESTRING)) {
+    }
+    //Pause when we see a backtick, and use the template parser to consume the template string
+    else if (match(TokenType.TEMPLATESTRING)) {
       TemplateParser templateParser = new TemplateParser(new TemplateTokenizer(currToken().getValue(), false));
       Node templateNode = templateParser.parse();
       parent.addChild(fillerNode);
       parent.addChild(templateNode);
       nextToken();
       addParseFillerUntil(parent, matcher); //continue parsing filler after consuming template string
-    } else {
+    }
+    //Pause when we see a function declaration to parse typescript style types
+    else if (matchKeyword("function") && _context.curlyCount == 0) {
+      skip(matchKeyword("function"));
+      parent.addChild(fillerNode);
+      FunctionNode functionNode = parseFunction(null);
+      parent.addChild(functionNode);
+      addParseFillerUntil(parent, matcher);
+    }
+      else {
       //reached the end token passed in to the argument; end parsing filler
       parent.addChild(fillerNode);
     }
@@ -370,6 +404,7 @@ public class Parser
   }
 
   private boolean isOverrideFunction(String functionName) {
+    if (_classNode == null) return false;
     String packageName = _programNode.getPackageFromClassName(_classNode.getSuperClass());
     if (packageName == null) return false;
     IType superType = TypeSystem.getByFullName(packageName);

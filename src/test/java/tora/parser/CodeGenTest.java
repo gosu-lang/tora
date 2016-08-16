@@ -49,9 +49,9 @@ public class CodeGenTest
 
 
   @Test
-  public void testSimpleFunctionNode() {
+  public void testSimpleClassFunctionNode() {
     Assert.assertEquals("Bar.prototype.Foo = function(){}",
-          new FunctionNode("Foo", "Bar", false).genCode());
+          new ClassFunctionNode("Foo", "Bar", false).genCode());
   }
 
   @Test
@@ -134,7 +134,7 @@ public void testStaticPropertiesInClass() {
   @Test
   public void testFunctionConstruction() {
     ClassNode demoClass = new ClassNode("DemoClass");
-    FunctionNode bar = new FunctionNode("bar", "DemoClass", false);
+    ClassFunctionNode bar = new ClassFunctionNode("bar", "DemoClass", false);
     PropertyNode doh = new PropertyNode("doh", false);
     demoClass.addChild(bar);
     demoClass.addChild(doh);
@@ -196,7 +196,7 @@ public void testStaticPropertiesInClass() {
 //    }
     ClassNode demoClass = new ClassNode("DemoClass");
     ConstructorNode demoConstructor = new ConstructorNode("DemoClass");
-    FunctionNode bar = new FunctionNode("bar", "DemoClass", false);
+    ClassFunctionNode bar = new ClassFunctionNode("bar", "DemoClass", false);
     PropertyNode dohSet = new PropertyNode("doh", "DemoClass", false, true);
     ParameterNode dohSetParam = new ParameterNode();
     dohSetParam.addParam("d", null);
@@ -207,7 +207,7 @@ public void testStaticPropertiesInClass() {
     pohSetParam.addParam("p", null);
     pohSet.addChild(pohSetParam);
     PropertyNode pohGet = new PropertyNode("poh", false);
-    FunctionNode staticFoo = new FunctionNode("staticFoo", "DemoClass", true);
+    ClassFunctionNode staticFoo = new ClassFunctionNode("staticFoo", "DemoClass", true);
     demoClass.addChild(demoConstructor);
     demoClass.addChild(bar);
     demoClass.addChild(dohSet);

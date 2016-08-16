@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.lang.Integer
 import java.lang.Double
 
-class TypingClass () {
+class TypingClass {
    constructor(a : String) {
      this.foo = a;
 

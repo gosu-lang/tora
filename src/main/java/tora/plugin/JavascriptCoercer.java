@@ -88,7 +88,7 @@ public class JavascriptCoercer {
 
     private Object coerceTypes(Object anyType, String typeTo, HashMap<String, CoercionFunction> map) {
         String currentType = anyType.getClass().getName();
-        CoercionFunction resultant = map.get(currentType + typeTo);
+         CoercionFunction resultant = map.get(currentType + typeTo);
         if (resultant == null) {
             return anyType;
         }

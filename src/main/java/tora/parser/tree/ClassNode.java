@@ -68,7 +68,7 @@ public class ClassNode extends Node {
             //Create extended superclass object
             superClassObjectCode.append("\n\tvar ").append(SUPERTYPE_OBJECT)
                     .append("= new (Java.extend(").append(superClassArg).append("))(){")
-                    .append(genOverrideFunctionCode(getChildren(FunctionNode.class))) //Add overridden methods
+                    .append(genOverrideFunctionCode(getChildren(ClassFunctionNode.class))) //Add overridden methods
                     .append("};");
             //Create property reference for the superclass object
             superClassObjectCode.append("\n\t").append("this.").append(SUPERTYPE_OBJECT)
@@ -83,7 +83,7 @@ public class ClassNode extends Node {
                     "return this._superClassObject}");
         }
 
-        for (FunctionNode node : getChildren(FunctionNode.class)) {
+        for (ClassFunctionNode node : getChildren(ClassFunctionNode.class)) {
             if (!node.isOverride()) code.append("\n\t").append(node.genCode());
         }
 
@@ -96,7 +96,7 @@ public class ClassNode extends Node {
         return code.toString();
     }
 
-    private String genOverrideFunctionCode(List<FunctionNode> functionNodes) {
+    private String genOverrideFunctionCode(List<ClassFunctionNode> functionNodes) {
         return String.join(",", functionNodes.stream()
                 .filter(node -> node.isOverride())
                 .map(node -> node.genCode())

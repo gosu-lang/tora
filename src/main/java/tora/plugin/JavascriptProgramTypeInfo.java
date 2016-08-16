@@ -11,18 +11,9 @@ import gw.lang.reflect.MethodList;
 import gw.lang.reflect.ParameterInfoBuilder;
 import gw.lang.reflect.TypeSystem;
 import gw.util.GosuExceptionUtil;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
-import jdk.nashorn.internal.ir.Block;
 import jdk.nashorn.internal.ir.Expression;
-import jdk.nashorn.internal.ir.FunctionNode;
-import jdk.nashorn.internal.ir.IdentNode;
-import jdk.nashorn.internal.ir.Statement;
-import jdk.nashorn.internal.ir.VarNode;
-import jdk.nashorn.internal.parser.Parser;
-import jdk.nashorn.internal.runtime.ErrorManager;
-import jdk.nashorn.internal.runtime.ScriptEnvironment;
-import jdk.nashorn.internal.runtime.Source;
-import jdk.nashorn.internal.runtime.options.Options;
+import tora.parser.tree.FunctionNode;
+import tora.parser.tree.ParameterNode;
 import tora.parser.tree.ProgramNode;
 
 import javax.script.Invocable;
@@ -51,53 +42,45 @@ public class JavascriptProgramTypeInfo extends BaseTypeInfo implements ITypeInfo
       // TODO cgross - make lazy
       _engine = new ScriptEngineManager().getEngineByName("nashorn");
       _engine.eval( source );
-
-      // parse for type info
-      Parser p = new Parser( new ScriptEnvironment( new Options(""),
-                                                    new PrintWriter( System.out ),
-                                                    new PrintWriter( System.err ) ),
-                             Source.sourceFor(javascriptType.getName(), source),
-                             new ErrorManager( new PrintWriter( System.err ) ));
-      FunctionNode rootFunction = p.parse();
       _methods = new MethodList();
-      Block body = rootFunction.getBody();
-      for( Statement statement : body.getStatements() )
-      {
-        if(statement instanceof VarNode) {
-          VarNode var = (VarNode) statement;
-          Expression init = var.getInit();
-          JavascriptCoercer jscoerce = new JavascriptCoercer();
-          if( init instanceof FunctionNode )
-          {
-            String name = var.getName().getPropertyName();
-            List<IdentNode> parameters = ((FunctionNode)init).getParameters();
-            _methods.add( new MethodInfoBuilder()
-                            .withName( name )
-                            .withParameters( makeParamList( parameters ) )
-                            .withStatic()
-                            .withReturnType( getDynamicType() )
-                              .withCallHandler( ( ctx, args ) -> {
-
-                              try
-                              {
-                                Object o = ((Invocable)_engine).invokeFunction( name, args );
-                                //o = maybeExpand(o);
-                                return o;
-                              }
-                              catch( Exception e )
-                              {
-                                throw GosuExceptionUtil.forceThrow( e );
-                              }
-                            } )
-                            .build( this ) );
-
-          }
-        }
-      }
+      addMethods(programNode);
     }
     catch( ScriptException e )
     {
       throw GosuExceptionUtil.forceThrow( e );
+    }
+  }
+
+  public void addMethods(ProgramNode programNode) throws ScriptException {
+    JavascriptCoercer coercer = new JavascriptCoercer();
+    for (FunctionNode node : programNode.getChildren(FunctionNode.class)) {
+      try {
+        _methods.add(new MethodInfoBuilder()
+                .withName(node.getName())
+                .withStatic()
+                .withParameters((node.getFirstChild(ParameterNode.class)).toParamList())
+                .withReturnType(TypeSystem.getByRelativeName(node.getReturnType()))
+                .withCallHandler((ctx, args) -> {
+                  for(int i = 0 ; i < args.length; i ++) {
+                    String paramType = node.getFirstChild(ParameterNode.class).getTypes().get(i);
+                    if(!paramType.equals("dynamic.Dynamic")) {
+                      args [i] = coercer.coerceTypesJavatoJS(args[i], paramType);
+                    }
+                  }
+                  try {
+                    Object o = ((Invocable) _engine).invokeFunction(node.getName(), args);
+                    String returnType = TypeSystem.getByRelativeName(node.getReturnType()).getName();
+                    if (o == null) return  null;
+                    return coercer.coerceTypesJStoJava(o, returnType);
+                  }
+                  catch (Exception e) {
+                    throw GosuExceptionUtil.forceThrow( e );
+                  }
+                })
+                .build(this));
+      } catch (ClassNotFoundException e) {
+        throw GosuExceptionUtil.forceThrow( e );
+      }
     }
   }
 
@@ -113,23 +96,6 @@ public class JavascriptProgramTypeInfo extends BaseTypeInfo implements ITypeInfo
 //    }
 //  }
 
-  private ParameterInfoBuilder[] makeParamList( List<IdentNode> parameters )
-  {
-    ParameterInfoBuilder[] parameterInfoBuilders = new ParameterInfoBuilder[parameters.size()];
-    for( int i = 0; i < parameterInfoBuilders.length; i++ )
-    {
-      IdentNode identNode = parameters.get( i );
-      parameterInfoBuilders[i] = new ParameterInfoBuilder().withName( identNode.getName() )
-        .withDefValue( CommonServices.getGosuIndustrialPark().getNullExpressionInstance() )
-        .withType( getDynamicType() );
-    }
-    return parameterInfoBuilders;
-  }
-
-  private IType getDynamicType()
-  {
-    return TypeSystem.getByFullName( "dynamic.Dynamic" );
-  }
 
   @Override
   public MethodList getMethods()

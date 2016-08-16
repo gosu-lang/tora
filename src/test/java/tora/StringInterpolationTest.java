@@ -32,13 +32,9 @@ public class StringInterpolationTest
     String template = (String)
             eval("return InterpolationProgram.multiLine('hello')");
 
-    template = template.replaceAll("\r\n", "\n");
     assertEquals (template,"this is a\n" +
-            "\n" +
             "  multiline\n" +
-            "\n" +
             "  example\n" +
-            "\n" +
             "  of template strings with the argument hello");
   }
 

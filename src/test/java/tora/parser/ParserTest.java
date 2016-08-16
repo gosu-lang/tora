@@ -58,13 +58,13 @@ public class ParserTest {
     @Test
     public void parseSimpleFunction() {
         ClassNode tree = this.parseClass("class DemoClass{ bar(){} }");
-        assertHasChildren(tree, new FunctionNode("bar", "DemoClass", false));
+        assertHasChildren(tree, new ClassFunctionNode("bar", "DemoClass", false));
     }
 
     @Test
     public void parseSimpleStaticFunction() {
         ClassNode tree = this.parseClass("class DemoClass{ static bar(){} }");
-        assertHasChildren(tree, new FunctionNode("bar", "DemoClass", true));
+        assertHasChildren(tree, new ClassFunctionNode("bar", "DemoClass", true));
     }
 
     @Test
@@ -95,10 +95,10 @@ public class ParserTest {
                 "static static(){}" +
                 "}");
         assertHasChildren(tree,
-                new FunctionNode("static", "DemoClass", false),
-                new FunctionNode("get", "DemoClass", false),
-                new FunctionNode("set", "DemoClass", false),
-                new FunctionNode("static", "DemoClass", true)
+                new ClassFunctionNode("static", "DemoClass", false),
+                new ClassFunctionNode("get", "DemoClass", false),
+                new ClassFunctionNode("set", "DemoClass", false),
+                new ClassFunctionNode("static", "DemoClass", true)
         );
     }
 

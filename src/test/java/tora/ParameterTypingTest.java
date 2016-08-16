@@ -12,9 +12,12 @@ import gw.util.GosuExceptionUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import java.util.HashMap;
+
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import gw.lang.parser.exceptions.ParseResultsException;
+
 /**
  * Created by lmeyer-teruel on 7/27/2016.
  */
@@ -31,36 +34,48 @@ public class ParameterTypingTest
     @Test
     public void doubleTypeTest() {
         Boolean succesfullyFails = false;
-        Assert.assertEquals(50.0, eval("var typeClass = new TypingClass(); return typeClass.doubleTest(25.0, 25.0);"));
+        assertEquals(50.0, eval("var typeClass = new TypingClass(); return typeClass.doubleTest(25.0, 25.0);"));
         try {
             eval("var typeClass = new TypingClass(); return typeClass.doubleTest(\"hi\", \"hi\");");
         } catch (Exception e) {
             succesfullyFails = true;
         }
-        Assert.assertTrue(succesfullyFails);
+        assertTrue(succesfullyFails);
+
+        //for programs
+        succesfullyFails = false;
+        assertEquals(50.0, eval("return TypingProgram.doubleTest(25.0, 25.0);"));
+        try {
+            eval("return TypingProgram.doubleTest(\"hi\", \"hi\");");
+        } catch (Exception e) {
+            succesfullyFails = true;
+        }
+        assertTrue(succesfullyFails);
 
     }
     @Test
     public void stringTypeTest() {
         Boolean succesfullyFails = false;
-        Assert.assertEquals(50.0, eval("var typeClass = new TypingClass(); return typeClass.doubleTest(25.0, 25.0);"));
+        assertEquals(50.0, eval("var typeClass = new TypingClass(); return typeClass.doubleTest(25.0, 25.0);"));
         try {
             eval("var typeClass = new TypingClass(); return typeClass.doubleTest(\"hi\", \"hi\");");
         } catch (Exception e) {
             succesfullyFails = true;
         }
-        Assert.assertTrue(succesfullyFails);
+        assertTrue(succesfullyFails);
+
+
     }
 
     @Test
     public void intTypeTest() {
-        Assert.assertEquals(50, eval("var typeClass = new TypingClass(); return typeClass.intTest(50)"));
-
+        assertEquals(50, eval("var typeClass = new TypingClass(); return typeClass.intTest(50)"));
+        assertEquals(50, eval("return TypingProgram.intTest(50)"));
     }
     @Test
     public void javaTypeTest() {
         //javaClassTest passes an arraylist as a parameter to another function which adds an element, and then counts its length
-        Assert.assertEquals(1, eval("var typeClass = new TypingClass(); return typeClass.javaClassTest();"));
+        assertEquals(1, eval("var typeClass = new TypingClass(); return typeClass.javaClassTest();"));
 
         Boolean succesfullyFailsInput = false;
         Boolean succesfullyFailsOutput = false;
@@ -76,8 +91,28 @@ public class ParameterTypingTest
         } catch (Exception e) {
             succesfullyFailsOutput = true;
         }
-        Assert.assertTrue(succesfullyFailsInput);
-        Assert.assertTrue(succesfullyFailsOutput);
+        assertTrue(succesfullyFailsInput);
+        assertTrue(succesfullyFailsOutput);
+
+        assertEquals(1, eval("return TypingProgram.javaClassTest();"));
+
+        //test with programs
+        succesfullyFailsInput = false;
+        succesfullyFailsOutput = false;
+
+        try {
+            eval("return TypingProgram.failsWhenPassedWrongType(5);");
+        } catch (Exception e) {
+            succesfullyFailsInput = true;
+        }
+
+        try {
+            eval("return TypingProgram.failsWhenReturningNonArrayList();");
+        } catch (Exception e) {
+            succesfullyFailsOutput = true;
+        }
+        assertTrue(succesfullyFailsInput);
+        assertTrue(succesfullyFailsOutput);
 
     }
     @Test
@@ -88,28 +123,28 @@ public class ParameterTypingTest
     @Test
     public void returnTypeTest() {
         Boolean succesfullyFails = false;
-        Assert.assertEquals(25.0, eval("var typeClass = new TypingClass(); return typeClass.returnsDouble(25);"));
+        assertEquals(25.0, eval("var typeClass = new TypingClass(); return typeClass.returnsDouble(25);"));
         try {
             eval("var typeClass = new TypingClass(); return typeClass.returnsWrongType(\"hi\");");
         } catch (Exception e) {
             succesfullyFails = true;
         }
-        Assert.assertTrue(succesfullyFails);
+        assertTrue(succesfullyFails);
     }
 
     @Test
     public void coercionJSToJavaTypeTest() {
-        Assert.assertEquals("168.0", eval("var typeClass = new TypingClass(); return typeClass.doubleToStringCoercionTest(123,45)"));
+        assertEquals("168.0", eval("var typeClass = new TypingClass(); return typeClass.doubleToStringCoercionTest(123,45)"));
+        assertEquals("168.0", eval("return TypingProgram.doubleToStringCoercionTest(123,45)"));
     }
 
 
     @Test
     public void coercionJavaToJSTypeTest() {
-        Assert.assertEquals(123.0, eval("var typeClass = new TypingClass(); return typeClass.takesInDoubleAndReturns(123)"));
+        assertEquals(123.0, eval("var typeClass = new TypingClass(); return typeClass.takesInDoubleAndReturns(123)"));
+        assertEquals(123.0, eval("return TypingProgram.takesInDoubleAndReturns(123)"));
     }
-    private ProgramNode parse(String code) {
-        return (ProgramNode) new Parser(new Tokenizer(code)).parse();
-    }
+
 
     private Object eval( String program )
     {

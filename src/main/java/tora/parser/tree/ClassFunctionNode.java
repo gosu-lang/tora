@@ -1,7 +1,7 @@
 package tora.parser.tree;
 
 
-public class ClassFunctionNode extends Node
+public class ClassFunctionNode extends FunctionNode
 {
 
   private String _className;

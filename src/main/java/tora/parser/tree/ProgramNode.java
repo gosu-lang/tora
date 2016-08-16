@@ -19,6 +19,12 @@ public class ProgramNode extends Node
 
   public List<Error> getErrorList() { return _errorList; }
 
+  public void printErrors() {
+    for (Error error : _errorList) {
+      System.out.println(error.toString());
+    }
+  }
+
   public ProgramNode()
   {
     super( null );
@@ -33,6 +39,12 @@ public class ProgramNode extends Node
         return node.getName();
     }
      return null;
+  }
+
+  @Override
+  public String genCode() {
+    String code = super.genCode();
+    return code;
   }
 
 }

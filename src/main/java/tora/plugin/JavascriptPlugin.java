@@ -163,6 +163,12 @@ public class JavascriptPlugin extends TypeLoaderBase
       else {
           Parser parser = new Parser(new Tokenizer(StreamUtil.getContent(new InputStreamReader(iFile.openInputStream()))));
           ProgramNode programNode = (ProgramNode) parser.parse();
+
+          if (programNode.errorCount() > 0) {
+            programNode.printErrors();
+            return null;
+          }
+
           if (parser.isES6Class()) {
             return new JavascriptClassType(this, name, iFile, programNode);
           } else {

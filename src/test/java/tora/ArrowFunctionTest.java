@@ -22,7 +22,7 @@ public class ArrowFunctionTest
 
   @Test
   public void multipleParamsStatement() throws ScriptException {
-   // assertEquals(15.0, eval("return ArrowClass.arrowReduceStatement()"));
+    assertEquals(15.0, eval("return ArrowClass.arrowReduceStatement()"));
     assertEquals(15.0, eval("return ArrowProgram.arrowReduceStatement()"));
   }
 

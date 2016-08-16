@@ -84,10 +84,9 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
   private void addMethods(ClassNode classNode) throws ScriptException {
     ScriptObjectMirror classObject = (ScriptObjectMirror) _engine.get(classNode.getName());
     JavascriptCoercer coercer = new JavascriptCoercer();
-    for (FunctionNode node : classNode.getChildren(FunctionNode.class)) {
+    for (ClassFunctionNode node : classNode.getChildren(ClassFunctionNode.class)) {
       if (!node.isOverride()) {
         try {
-          TypeVarToTypeMap mapper = new TypeVarToTypeMap();
           _methods.add(new MethodInfoBuilder()
                   .withName(node.getName())
                   .withStatic(node.isStatic())

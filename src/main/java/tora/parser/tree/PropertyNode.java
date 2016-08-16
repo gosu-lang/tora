@@ -1,6 +1,6 @@
 package tora.parser.tree;
 
-public class PropertyNode extends FunctionNode
+public class PropertyNode extends ClassFunctionNode
 {
   private boolean _isSetter;
 

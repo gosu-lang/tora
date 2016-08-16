@@ -29,23 +29,6 @@ public class FunctionNode extends Node
   }
 
 
-
-  public boolean isStatic() {
-    return _isStatic;
-  }
-
-  public void setStatic(boolean isStatic) {
-    _isStatic = isStatic;
-  }
-
-  public boolean isOverride() {
-    return _isOverride;
-  }
-
-  public void setOverride(boolean isOverride) {
-    _isOverride = isOverride;
-  }
-
   public void setReturnType(String returnType){  _returnType = returnType; }
 
   public String getReturnType() {return _returnType;}
@@ -58,13 +41,7 @@ public class FunctionNode extends Node
             "" : getFirstChild(ParameterNode.class).genCode();
     String functionBodyCode = (getFirstChild(FunctionBodyNode.class) == null) ?
             "{}" : getFirstChild(FunctionBodyNode.class).genCode();
-
-    //If it's an override function, give as key value pair for Java.extend codegen from ClassNode
-    if (isOverride()) {
-      return getName() + ": function(" + parameterCode + ")" + functionBodyCode;
-    }
-    else return _className + (_isStatic?".":".prototype.") + //If static, can be method of class directly
-            getName() + " = " + "function" + "(" + parameterCode + ")" + functionBodyCode;
+      return "function " + getName() + "(" + parameterCode + ")" + functionBodyCode;
   }
 
 
@@ -72,6 +49,6 @@ public class FunctionNode extends Node
   public boolean equals(Object obj) {
     if (!(obj instanceof FunctionNode)) return false;
     FunctionNode node = (FunctionNode) obj;
-    return getName().equals(node.getName()) && _isStatic == ((FunctionNode) obj).isStatic();
+    return getName().equals(node.getName());
   }
 }
