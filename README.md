@@ -103,7 +103,7 @@ Javascript: foo.js
 ####  Constructor 
 The constructor is called when a new object is created. It initializes the properties within the object.
 
-Javascript
+Javascript:
 
 ```javascript
     class Foo {
@@ -113,14 +113,15 @@ Javascript
     }
 ```
 
-Gosu
+Gosu:
     
     var foo = new Foo(5); // Creates new Foo object and sets this.bar to a
     
 #### Methods
 Methods are functions that are assigned to classes. They can interact with properties of the class and call other
 internal methods. 
-Javascript
+
+Javascript:
 
 ```javascript
     class Foo {
@@ -135,7 +136,7 @@ Javascript
     }
 ```
 
-Gosu
+Gosu:
 
 ```javascript
     var foo = new Foo(21);
@@ -143,7 +144,7 @@ Gosu
 ```
 #### Static Methods
 
-Javascript
+Javascript:
 
 ```javascript
     class Foo {
@@ -158,7 +159,7 @@ Javascript
     }
 ```
     
-Gosu
+Gosu:
 
 ```javascript
     print(Foo.staticFoo()); // Prints  42
@@ -166,6 +167,8 @@ Gosu
 
 #### Properties
 Classes can have getter and setter properties which abstract the properties held within the class.
+
+Javascript:
 
 ```javascript
     class Foo {
@@ -183,7 +186,7 @@ Classes can have getter and setter properties which abstract the properties held
     }
 ```
 
-Gosu 
+Gosu:
 
 ```javascript
     var foo = new Foo();
@@ -271,7 +274,7 @@ The import statement in tora acts like the java import statement, not the (unsup
 Java classes can be extended using javascript, allowing for the creation of modified classes. One
 known limitation is that the constructor of the superclass cannot be overwritten.
 
-Javascript
+Javascript:
 
 ```javascript
     import java.util.ArrayList;
