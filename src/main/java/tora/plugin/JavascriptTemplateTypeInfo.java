@@ -30,6 +30,8 @@ public class JavascriptTemplateTypeInfo extends BaseTypeInfo implements ITypeInf
     } catch (ScriptException e) {
       throw GosuExceptionUtil.forceThrow( e );
     }
+    JavascriptCoercer coercer = new JavascriptCoercer();
+
     _methods = new MethodList();
     //Only one method to render template to string
     _methods.add(new MethodInfoBuilder()
@@ -38,6 +40,12 @@ public class JavascriptTemplateTypeInfo extends BaseTypeInfo implements ITypeInf
             .withStatic()
             .withParameters(templateNode.getFirstChild(ParameterNode.class).toParamList())
             .withCallHandler( ( ctx, args ) -> {
+              for(int i = 0 ; i < args.length; i ++) {
+                String paramType = templateNode.getFirstChild(ParameterNode.class).getTypes().get(i);
+                if(!paramType.equals("dynamic.Dynamic")) {
+                  args [i] = coercer.coerceTypesJavatoJS(args[i], paramType);
+                }
+              }
                 return renderToString(args);
               })
             .build( this ) );
