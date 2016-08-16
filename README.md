@@ -309,7 +309,7 @@ In order to allow for greater control and readability, tora allows for specifyin
 be parameters and return types. The supported types include any in the standard java.lang.* package, however those found
 in the java.util.* packages must be imported.
 
-Javascript
+Javascript:
 
 ```javascript
     import java.util.ArrayList;
@@ -327,9 +327,9 @@ Javascript
         }
     }
 ```
+Gosu:
 
 ```javascript
-Gosu
     var sample = new Sample();
     print(foo("Hello", 5)) // ["Hello","Hello","Hello","Hello","Hello"]
 ```
