@@ -91,6 +91,7 @@ public class TemplateTokenizer extends Tokenizer {
         break;
       }
       if (!_isJST && TokenType.isLineTerminator(currChar())) {
+          if (currChar() == '\r' && peek() == '\n') nextChar(); //skip over the \r in \r\n for windows files
           val.append("\\n"); //escape newlines since template literals can be multiline
       } else {
           val.append(currChar());
