@@ -8,10 +8,6 @@ public class ConstructorNode extends FunctionNode
     super( name );
   }
 
-  public ConstructorNode(String name, String className)
-  {
-    super(name, className);
-  }
 
   @Override
   public String genCode()

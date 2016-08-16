@@ -4,9 +4,6 @@ package tora.parser.tree;
 public class FunctionNode extends Node
 {
 
-  private String _className;
-  private Boolean _isStatic = false;
-  private Boolean _isOverride = false;
   private String _returnType = "dynamic.Dynamic";
 
   public FunctionNode( String name )
@@ -14,19 +11,6 @@ public class FunctionNode extends Node
     super( name );
   }
 
-  //Test constructors
-  public FunctionNode( String name, String className, boolean isStatic )
-  {
-    super( name );
-    _className = className;
-    _isStatic = isStatic;
-  }
-
-  public FunctionNode( String name, String className)
-  {
-    super( name );
-    _className = className;
-  }
 
 
   public void setReturnType(String returnType){  _returnType = returnType; }

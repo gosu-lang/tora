@@ -83,7 +83,9 @@ public class Parser
       if (match('.')) matcher = () -> match(TokenType.IDENTIFIER);
       nextToken();
     }
-    return new ImportNode(packageName.toString());
+    ImportNode importNode = new ImportNode(packageName.toString());
+    importNode.setTokens(start, _currentToken);
+    return importNode;
   }
 
   private void parseClassBody(String className)
@@ -115,15 +117,11 @@ public class Parser
     Tokenizer.Token start = _currentToken; //'constructor'
     skip(matchClassKeyword("constructor"));
 
-    ParameterNode params = parseParams();
-    FunctionBodyNode body = parseFunctionBody(className);
+    ConstructorNode constructorNode = new ConstructorNode(className);
+    constructorNode.setTokens(start, null);
+    addParseFunctionParamAndBody(constructorNode);
 
-    Tokenizer.Token end = _currentToken;
     nextToken();
-    ConstructorNode constructorNode = new ConstructorNode(className, className);
-    constructorNode.setTokens(start, end);
-    constructorNode.addChild(params);
-    constructorNode.addChild(body);
     return constructorNode;
   }
 
@@ -153,8 +151,9 @@ public class Parser
       functionNode = new ClassFunctionNode(functionName, className, false);
     }
     else  {
-      functionNode = new FunctionNode(functionName, className, false);
+      functionNode = new FunctionNode(functionName);
     }
+    functionNode.setTokens(start, null);
 
     addParseFunctionParamAndBody(functionNode);
     nextToken();
@@ -193,13 +192,9 @@ public class Parser
     String functionName = _currentToken.getValue();
     skip(match(TokenType.IDENTIFIER));
 
-    ParameterNode params = parseParams();
-    FunctionBodyNode body = parseFunctionBody(functionName);
-
     PropertyNode node = new PropertyNode(functionName, className, false, isSetter);
-    node.setTokens(start, _currentToken);
-    node.addChild(params);
-    node.addChild(body);
+    node.setTokens(start, null);
+    addParseFunctionParamAndBody(node);
     nextToken();
     return node;
   }
