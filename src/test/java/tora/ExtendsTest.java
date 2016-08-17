@@ -66,6 +66,13 @@ public class ExtendsTest {
 
     }
 
+    @Test
+    public void gosuBlockOnExtendedClass() {
+        assertEquals(3, eval("var extended = new ExtendsClass(); " +
+                "extended.add(1);extended.add(2);extended.add(3); " +
+                "return extended.where(\\s -> s > 2)[0]"));
+    }
+
     private Object eval( String program )
     {
         IGosuProgramParser programParser = CommonServices.getGosuParserFactory().createProgramParser();

@@ -8,10 +8,8 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.MethodInfoBuilder;
 import gw.lang.reflect.MethodList;
-import gw.lang.reflect.ParameterInfoBuilder;
 import gw.lang.reflect.TypeSystem;
 import gw.util.GosuExceptionUtil;
-import jdk.nashorn.internal.ir.Expression;
 import tora.parser.tree.FunctionNode;
 import tora.parser.tree.ParameterNode;
 import tora.parser.tree.ProgramNode;
@@ -20,11 +18,6 @@ import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import tora.plugin.JavascriptCoercer;
 
 
 public class JavascriptProgramTypeInfo extends BaseTypeInfo implements ITypeInfo

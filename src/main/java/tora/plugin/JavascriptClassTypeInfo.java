@@ -28,9 +28,11 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
     _programNode = programNode;
     ClassNode classNode = programNode.getFirstChild(ClassNode.class);
     _constructorList = new ArrayList<>();
+
+
     _methods = new MethodList();
     _propertiesList = new ArrayList<>();
-    _propertiesMap = new HashMap<String, IPropertyInfo>();
+    _propertiesMap = new HashMap<>();
     try {
       _engine = new ScriptEngineManager().getEngineByName("nashorn");
       _engine.eval(programNode.genCode());
@@ -121,10 +123,18 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
     if (packageName == null) return;
     IType superType = TypeSystem.getByFullName(packageName);
     if (superType == null) return;
+
+    if (superType.isGenericType()) {
+      IType[] typeParams = new IType[superType.getGenericTypeVariables().length];
+      for (int i = 0; i < typeParams.length; i++) {
+        typeParams[i] = TypeSystem.getByFullName("dynamic.Dynamic");
+      }
+      superType = superType.getParameterizedType(typeParams);
+    }
     for (IMethodInfo method : superType.getTypeInfo().getMethods()) {
       _methods.add(new MethodInfoBuilder()
               .withName(method.getDisplayName())
-              .withParameters(makeInheritedParamList(method, superType))
+              .withParameters(makeInheritedParamList(method))
               .withStatic(method.isStatic())
               .withReturnType(method.getReturnType())
               .withCallHandler((ctx, args) -> {
@@ -144,20 +154,13 @@ public class JavascriptClassTypeInfo extends BaseTypeInfo implements ITypeInfo
 
 
   /*Construct a parameter list for inherited parameters. If param matches a generic type variable, make type Dynamic*/
-  private ParameterInfoBuilder[] makeInheritedParamList (IMethodInfo method, IType superType) {
+  private ParameterInfoBuilder[] makeInheritedParamList (IMethodInfo method) {
     IParameterInfo[]  params = method.getParameters();
     ParameterInfoBuilder[] parameterInfoBuilders = new ParameterInfoBuilder[params.length];
 
     for (int i = 0; i < params.length; i++) {
       ParameterInfoBuilder param = new ParameterInfoBuilder().like(params[i]);
       parameterInfoBuilders[i] = param;
-      //Check to see if param matches a type variable
-      for (int j = 0; j < superType.getGenericTypeVariables().length; j++) {
-        //If param is a type variable, make dynamic
-        if (superType.getGenericTypeVariables()[j].getName().equals(params[i].getDisplayName())) {
-          param = param.withType(TypeSystem.getByFullName("dynamic.Dynamic"));
-        }
-      }
     }
     return parameterInfoBuilders;
   }

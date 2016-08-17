@@ -161,22 +161,6 @@ public class Parser
 
   }
 
-  /*starting from the opening parens for function parameters, parses the function params, return type,
-  and function body, and appends to the parent
-   */
-  private void addParseFunctionParamAndBody(FunctionNode parent) {
-    ParameterNode params = parseParams();
-    String returnType = parseReturnType();
-
-    FunctionBodyNode body = parseFunctionBody(parent.getName());
-    parent.setReturnType(returnType);
-    expect(match('}'));
-    parent.setTokens(parent.getStart(), _currentToken);
-    parent.addChild(params);
-    parent.addChild(body);
-  }
-
-
   private PropertyNode parseStaticProperty(String className, Tokenizer.Token staticToken) {
     PropertyNode propertyNode = parseProperty(className);
     propertyNode.setTokens(staticToken, propertyNode.getEnd());
@@ -262,6 +246,23 @@ public class Parser
     bodyNode.addChild(lastCurly);
     return bodyNode;
   }
+
+
+  /*starting from the opening parens for function parameters, parses the function params, return type,
+  and function body, and appends to the parent
+   */
+  private void addParseFunctionParamAndBody(FunctionNode parent) {
+    ParameterNode params = parseParams();
+    String returnType = parseReturnType();
+
+    FunctionBodyNode body = parseFunctionBody(parent.getName());
+    parent.setReturnType(returnType);
+    expect(match('}'));
+    parent.setTokens(parent.getStart(), _currentToken);
+    parent.addChild(params);
+    parent.addChild(body);
+  }
+
 
   /*Parses filler code and adds onto parent, as well watching for es6 features such as arrow functions
    and string templates
